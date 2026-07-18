@@ -6,6 +6,12 @@
   "permissions": ["storage"],
   "host_permissions": ["https://api.groq.com/*"],
   "action": { "default_popup": "popup.html", "default_title": "ToneBridge" },
+  "commands": {
+    "translate-focused-editor": {
+      "suggested_key": { "default": "Alt+Shift+E", "mac": "Command+Shift+E" },
+      "description": "Translate text in the focused editor"
+    }
+  },
   "background": { "service_worker": "assets/background.js", "type": "module" },
   "content_scripts": [
     {

@@ -44,6 +44,7 @@ See the complete [translation contract](docs/TRANSLATION_CONTRACT.md).
 - Bangla and Banglish input with English-only output
 - Floating overlay near standard inputs, textareas, and basic `contenteditable` elements
 - Draggable overlay that stays inside the visible browser viewport
+- Automatic translation after a typing pause or manual translation with a configurable shortcut
 - One-click replace, copy, retry, dismiss, and short-lived undo
 - Debounced requests and stale-response protection while the user continues typing
 - Session-only result caching to reduce duplicate requests
@@ -105,6 +106,15 @@ ToneBridge does not bundle or sell an API key.
 2. Open the ToneBridge extension popup.
 3. Paste the key under **Groq API** and select **Save key**.
 4. Type Bangla or Banglish in a supported field and pause briefly.
+
+## Translation modes
+
+Open the ToneBridge popup and choose the trigger that fits your workflow:
+
+- **Automatic** translates after you stop typing for a short moment. This is the default.
+- **Manual** makes no translation request while you type. Focus a supported editor and press `Alt+Shift+E` (`Command+Shift+E` on macOS) when you want a suggestion.
+
+The shortcut also works while Automatic mode is selected. Select **Change** beside the shortcut in the popup, or open `chrome://extensions/shortcuts`, to assign a different key combination. Chrome may leave a suggested shortcut unassigned when it conflicts with another extension; the popup shows the shortcut currently assigned by the browser.
 
 The key is stored in `chrome.storage.local`, not in source code or Chrome sync storage. Live text is sent to Groq through the extension background worker using `openai/gpt-oss-120b`. Groq controls free-tier limits, model availability, and its data handling terms; these may change independently of ToneBridge. ToneBridge never enables billing or makes paid requests automatically.
 

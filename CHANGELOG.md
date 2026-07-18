@@ -10,6 +10,9 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - viewport boundaries that prevent the overlay from being lost off-screen
 - double-click reset that returns a moved overlay beside its active editor
 - deterministic overlay-positioning tests
+- automatic and manual translation trigger modes
+- configurable focused-editor shortcut with `Alt+Shift+E` as the suggested default
+- settings migration that preserves existing user choices while adding new defaults
 
 ## 0.3.0-alpha — 2026-07-18
 

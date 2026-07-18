@@ -21,6 +21,8 @@ if (!content.startsWith('(function')) failures.push('Content script is not a sta
 if (/^\s*import\s/m.test(content)) failures.push('Content script contains a top-level import.');
 if (content.includes('process.env'))
   failures.push('Content script contains Node process.env references.');
+if (!manifest.commands?.['translate-focused-editor'])
+  failures.push('Manifest is missing the focused-editor translation command.');
 
 if (failures.length) {
   console.error(failures.join('\n'));

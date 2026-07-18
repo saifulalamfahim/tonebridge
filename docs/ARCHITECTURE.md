@@ -15,7 +15,7 @@ This document describes the `v0.3.0-alpha` browser-extension architecture and th
 
 ```text
 Supported web editor
-  -> content script reads current text after a debounce
+  -> automatic mode reads current text after a debounce, or manual mode waits for the shortcut
   -> content script requests a translation through extension messaging
   -> background service worker reads provider settings and local API key
   -> provider sends the source text to its configured endpoint
@@ -34,7 +34,7 @@ The source editor remains unchanged until the user selects **Replace**. If the t
 
 ### Content layer
 
-`src/content/` owns editor discovery, debouncing, overlay state, user actions, and safe replacement. It supports standard inputs, textareas, and basic contenteditable elements. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
+`src/content/` owns editor discovery, automatic debouncing, manual command handling, overlay state, user actions, and safe replacement. It supports standard inputs, textareas, and basic contenteditable elements. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
 
 This layer must not read or receive provider credentials.
 
@@ -54,7 +54,7 @@ See [Provider guide](PROVIDER_GUIDE.md) before adding an engine.
 
 ### Popup
 
-`src/popup/` owns user-facing extension controls and API-key setup. The key is written to `chrome.storage.local`. The ordinary enabled setting may use sync storage because it is not secret.
+`src/popup/` owns user-facing extension controls, trigger-mode selection, shortcut discovery, and API-key setup. The key is written to `chrome.storage.local`. Ordinary enabled and translation-mode settings may use sync storage because they are not secrets.
 
 ## Trust boundaries
 
