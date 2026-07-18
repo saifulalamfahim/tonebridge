@@ -4,6 +4,13 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 
 ## Unreleased
 
+### Added
+
+- draggable overlay positioning with mouse, pointer, and keyboard controls
+- viewport boundaries that prevent the overlay from being lost off-screen
+- double-click reset that returns a moved overlay beside its active editor
+- deterministic overlay-positioning tests
+
 ## 0.3.0-alpha — 2026-07-18
 
 ### Added

@@ -1,19 +1,138 @@
+import { useCallback, useLayoutEffect, useRef, useState } from 'react';
+import {
+  clampOverlayPosition,
+  DEFAULT_OVERLAY_SIZE,
+  getAnchoredOverlayPosition,
+  getDraggedOverlayPosition,
+} from './overlayPosition.js';
 import { useOverlayController } from './useOverlayController.js';
 
-export function FloatingOverlay() {
-  const { applied, copied, visible, loading, result, rect, accept, copy, hide, retry, undo } =
-    useOverlayController();
-  if (!visible || !rect) return null;
+function getViewport() {
+  return { width: window.innerWidth, height: window.innerHeight };
+}
 
-  const cardHeight = 190;
-  const roomBelow = rect.bottom + 8 + cardHeight <= window.innerHeight;
-  const top = roomBelow ? rect.bottom + 8 : Math.max(12, rect.top - cardHeight - 8);
-  const left = Math.min(Math.max(12, rect.left), window.innerWidth - 348);
+export function FloatingOverlay() {
+  const {
+    applied,
+    copied,
+    visible,
+    loading,
+    result,
+    rect,
+    placementId,
+    accept,
+    copy,
+    hide,
+    retry,
+    undo,
+  } = useOverlayController();
+  const cardRef = useRef(null);
+  const dragRef = useRef(null);
+  const [cardSize, setCardSize] = useState(DEFAULT_OVERLAY_SIZE);
+  const [draggedPlacement, setDraggedPlacement] = useState(null);
+
+  useLayoutEffect(() => {
+    const card = cardRef.current;
+    if (!card) return undefined;
+
+    const updateSize = () => {
+      const next = card.getBoundingClientRect();
+      setCardSize({ width: next.width, height: next.height });
+    };
+    updateSize();
+    const observer = new ResizeObserver(updateSize);
+    observer.observe(card);
+    return () => observer.disconnect();
+  }, [visible, loading, applied, result]);
+
+  const viewport = getViewport();
+  const anchoredPosition = rect ? getAnchoredOverlayPosition(rect, cardSize, viewport) : null;
+  const draggedPosition =
+    draggedPlacement?.placementId === placementId ? draggedPlacement.position : null;
+  const position = draggedPosition
+    ? clampOverlayPosition(draggedPosition, cardSize, viewport)
+    : anchoredPosition;
+
+  const startDrag = useCallback(
+    (event) => {
+      if (event.button !== 0 || event.target.closest('button') || !position) return;
+      dragRef.current = {
+        pointerId: event.pointerId,
+        offset: { x: event.clientX - position.left, y: event.clientY - position.top },
+      };
+      event.currentTarget.setPointerCapture(event.pointerId);
+      event.preventDefault();
+    },
+    [position],
+  );
+
+  const continueDrag = useCallback(
+    (event) => {
+      const drag = dragRef.current;
+      if (!drag || drag.pointerId !== event.pointerId) return;
+      setDraggedPlacement({
+        placementId,
+        position: getDraggedOverlayPosition(event, drag.offset, cardSize, getViewport()),
+      });
+    },
+    [cardSize, placementId],
+  );
+
+  const stopDrag = useCallback((event) => {
+    if (dragRef.current?.pointerId !== event.pointerId) return;
+    if (event.currentTarget.hasPointerCapture(event.pointerId))
+      event.currentTarget.releasePointerCapture(event.pointerId);
+    dragRef.current = null;
+  }, []);
+
+  const moveWithKeyboard = useCallback(
+    (event) => {
+      if (event.target !== event.currentTarget || !position) return;
+      const movement = {
+        ArrowLeft: [-1, 0],
+        ArrowRight: [1, 0],
+        ArrowUp: [0, -1],
+        ArrowDown: [0, 1],
+      }[event.key];
+      if (!movement) return;
+      event.preventDefault();
+      const distance = event.shiftKey ? 25 : 10;
+      setDraggedPlacement({
+        placementId,
+        position: clampOverlayPosition(
+          {
+            left: position.left + movement[0] * distance,
+            top: position.top + movement[1] * distance,
+          },
+          cardSize,
+          getViewport(),
+        ),
+      });
+    },
+    [cardSize, placementId, position],
+  );
+
+  if (!visible || !rect || !position) return null;
+
   const version = chrome.runtime.getManifest().version;
 
   return (
-    <aside className="tonebridge-card" style={{ left, top }} aria-live="polite">
-      <header>
+    <aside ref={cardRef} className="tonebridge-card" style={position} aria-live="polite">
+      <header
+        className="tonebridge-drag-handle"
+        tabIndex="0"
+        title="Drag to move. Double-click to return beside the editor."
+        aria-label="ToneBridge suggestion window. Drag to move, or use the arrow keys."
+        onPointerDown={startDrag}
+        onPointerMove={continueDrag}
+        onPointerUp={stopDrag}
+        onPointerCancel={stopDrag}
+        onDoubleClick={() => setDraggedPlacement(null)}
+        onKeyDown={moveWithKeyboard}
+      >
+        <span className="tonebridge-grip" aria-hidden="true">
+          {'\u2807'}
+        </span>
         <span className="tonebridge-mark">T</span>
         <strong>ToneBridge</strong>
         <small>v{version}</small>

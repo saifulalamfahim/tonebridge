@@ -24,6 +24,23 @@
   padding: 10px 12px;
   border-bottom: 1px solid #eef1f6;
 }
+.tonebridge-drag-handle {
+  cursor: grab;
+  touch-action: none;
+  user-select: none;
+}
+.tonebridge-drag-handle:active {
+  cursor: grabbing;
+}
+.tonebridge-drag-handle:focus-visible {
+  outline: 2px solid #5b5bd6;
+  outline-offset: -2px;
+}
+.tonebridge-grip {
+  color: #a2aabc;
+  font-size: 17px;
+  line-height: 1;
+}
 .tonebridge-card header strong {
   flex: 1;
   font-size: 13px;
@@ -43,6 +60,7 @@
   color: #697386;
   cursor: pointer;
   font-size: 20px;
+  touch-action: auto;
 }
 .tonebridge-mark {
   display: grid;
