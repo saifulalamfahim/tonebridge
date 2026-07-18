@@ -173,4 +173,3 @@ ToneBridge currently uses a maintainer-led model while the architecture and beha
 Copyright 2026 ToneBridge contributors.
 
 Licensed under the [Apache License 2.0](LICENSE). Contributions are accepted under the same license.
-
