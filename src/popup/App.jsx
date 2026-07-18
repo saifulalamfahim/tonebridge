@@ -1,8 +1,15 @@
 import { useEffect, useState } from 'react';
-import { DEFAULT_SETTINGS, STORAGE_KEYS } from '../shared/constants.js';
+import {
+  COMMANDS,
+  DEFAULT_SETTINGS,
+  STORAGE_KEYS,
+  TRANSLATION_MODES,
+} from '../shared/constants.js';
 
 export function App() {
   const [enabled, setEnabled] = useState(true);
+  const [translationMode, setTranslationMode] = useState(TRANSLATION_MODES.automatic);
+  const [shortcut, setShortcut] = useState('Not assigned');
   const [apiKey, setApiKey] = useState('');
   const [hasApiKey, setHasApiKey] = useState(false);
   const [keyStatus, setKeyStatus] = useState('');
@@ -11,9 +18,13 @@ export function App() {
     Promise.all([
       chrome.storage.sync.get(DEFAULT_SETTINGS),
       chrome.storage.local.get(STORAGE_KEYS.groqApiKey),
-    ]).then(([settings, secrets]) => {
+      chrome.commands.getAll(),
+    ]).then(([settings, secrets, commands]) => {
       setEnabled(settings[STORAGE_KEYS.enabled]);
+      setTranslationMode(settings[STORAGE_KEYS.translationMode]);
       setHasApiKey(Boolean(secrets[STORAGE_KEYS.groqApiKey]));
+      const command = commands.find((item) => item.name === COMMANDS.translateFocusedEditor);
+      if (command?.shortcut) setShortcut(command.shortcut);
       setReady(true);
     });
   }, []);
@@ -21,6 +32,13 @@ export function App() {
     const next = !enabled;
     setEnabled(next);
     await chrome.storage.sync.set({ [STORAGE_KEYS.enabled]: next });
+  };
+  const chooseTranslationMode = async (mode) => {
+    setTranslationMode(mode);
+    await chrome.storage.sync.set({ [STORAGE_KEYS.translationMode]: mode });
+  };
+  const openShortcutSettings = () => {
+    chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
   };
   const saveApiKey = async (event) => {
     event.preventDefault();
@@ -58,6 +76,44 @@ export function App() {
           <b />
         </i>
       </button>
+      <section className="mode-settings" aria-labelledby="translation-trigger-heading">
+        <div className="section-heading">
+          <span>
+            <strong id="translation-trigger-heading">Translation trigger</strong>
+            <small>Choose when text may be sent for translation</small>
+          </span>
+        </div>
+        <div className="mode-options">
+          <button
+            className={translationMode === TRANSLATION_MODES.automatic ? 'selected' : ''}
+            type="button"
+            onClick={() => chooseTranslationMode(TRANSLATION_MODES.automatic)}
+            disabled={!ready}
+            aria-pressed={translationMode === TRANSLATION_MODES.automatic}
+          >
+            <strong>Automatic</strong>
+            <small>After a short typing pause</small>
+          </button>
+          <button
+            className={translationMode === TRANSLATION_MODES.manual ? 'selected' : ''}
+            type="button"
+            onClick={() => chooseTranslationMode(TRANSLATION_MODES.manual)}
+            disabled={!ready}
+            aria-pressed={translationMode === TRANSLATION_MODES.manual}
+          >
+            <strong>Manual</strong>
+            <small>Only when you use the shortcut</small>
+          </button>
+        </div>
+        <div className="shortcut-row">
+          <span>
+            Focused editor shortcut <kbd>{shortcut}</kbd>
+          </span>
+          <button type="button" onClick={openShortcutSettings}>
+            Change
+          </button>
+        </div>
+      </section>
       <form className="api-settings" onSubmit={saveApiKey}>
         <div className="section-heading">
           <span>
@@ -96,8 +152,9 @@ export function App() {
         )}
       </form>
       <p className="notice">
-        Your key stays in this browser. Text is sent to Groq only when live translation is enabled.
-        Never use a shared production key inside a public extension.
+        Your key stays in this browser. Automatic mode sends text after a typing pause; Manual mode
+        sends it only when you use the shortcut. Never use a shared production key inside a public
+        extension.
       </p>
     </main>
   );

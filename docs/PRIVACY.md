@@ -7,14 +7,14 @@ ToneBridge processes text that may be personal. This document explains the alpha
 - ToneBridge does not operate analytics or a translation-history database.
 - Password fields are excluded.
 - Offline demo matches make no network request.
-- Live translation sends eligible typed text to the configured provider.
+- Automatic mode sends eligible text after a typing pause; Manual mode sends it only after the user invokes the translation shortcut.
 - A Groq API key is stored in Chrome local extension storage and used only by the background worker.
-- The normal enabled/disabled preference may be stored with Chrome sync because it is not a secret.
+- The normal enabled/disabled and translation-mode preferences may be stored with Chrome sync because they are not secrets.
 
 ## Live translation flow
 
-1. The extension observes text in a supported editor while enabled.
-2. After typing pauses for the configured debounce, the content script sends the current text to the extension background worker.
+1. The extension observes the focused supported editor while enabled.
+2. In Automatic mode, the content script sends the current text after typing pauses for the configured debounce. In Manual mode, typing alone sends nothing; the current text is sent only after the user invokes the focused-editor shortcut.
 3. The background worker reads the locally stored provider key.
 4. It sends the source text and translation instructions to Groq.
 5. The returned English text is displayed in the overlay.
@@ -24,13 +24,14 @@ Groq is an independent external service. Its free-tier limits, retention practic
 
 ## Data inventory
 
-| Data               | Where it is used                                       | Persistence                                                             |
-| ------------------ | ------------------------------------------------------ | ----------------------------------------------------------------------- |
-| Source text        | Content script, background worker, configured provider | Not intentionally written to extension storage; provider policy applies |
-| Translation result | Overlay and short session cache                        | Current extension session only                                          |
-| Groq API key       | Background worker                                      | `chrome.storage.local` until removed                                    |
-| Enabled preference | Popup/content behavior                                 | Chrome storage; may sync through the user's browser account             |
-| Undo text          | Immediate replacement interaction                      | Short-lived memory only                                                 |
+| Data               | Where it is used                                         | Persistence                                                             |
+| ------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- |
+| Source text        | Content script, background worker, configured provider   | Not intentionally written to extension storage; provider policy applies |
+| Translation result | Overlay and short session cache                          | Current extension session only                                          |
+| Groq API key       | Background worker                                        | `chrome.storage.local` until removed                                    |
+| Enabled preference | Popup/content behavior                                   | Chrome storage; may sync through the user's browser account             |
+| Translation mode   | Determines whether typing or a shortcut starts a request | Chrome storage; may sync through the user's browser account             |
+| Undo text          | Immediate replacement interaction                        | Short-lived memory only                                                 |
 
 ## What ToneBridge deliberately avoids
 

@@ -19,12 +19,15 @@ The gate runs ESLint, Prettier verification, Node provider tests, production bui
 2. Load `dist/` as an unpacked extension in Chrome or Edge.
 3. Reload the extension after every build and refresh the test page.
 4. Verify a standard input, textarea, and basic contenteditable element.
-5. Confirm the overlay appears after the debounce.
-6. Confirm **Replace**, **Copy**, **Retry**, **Dismiss**, and **Undo** behave correctly.
-7. Continue typing while a request is in flight and confirm an older result never replaces the newest suggestion.
-8. Confirm password fields never trigger the overlay.
-9. Test without a key, with an invalid key, while offline, and after rate limiting where safely reproducible.
-10. Confirm no credentials or message text appear in page DevTools logs.
+5. Select **Automatic**, type invented text, and confirm the overlay appears after the debounce.
+6. Select **Manual**, type different invented text, wait, and confirm no overlay or provider request appears.
+7. Keep the editor focused, press the shortcut shown in the popup, and confirm the overlay appears for the current text.
+8. Open `chrome://extensions/shortcuts`, assign another shortcut, and confirm the popup and command use it.
+9. Confirm **Replace**, **Copy**, **Retry**, **Dismiss**, and **Undo** behave correctly.
+10. Continue typing while a request is in flight and confirm an older result never replaces the newest suggestion.
+11. Confirm password fields never trigger the overlay.
+12. Test without a key, with an invalid key, while offline, and after rate limiting where safely reproducible.
+13. Confirm no credentials or message text appear in page DevTools logs.
 
 Use an invented public test sentence. Do not test with a private conversation or secret.
 

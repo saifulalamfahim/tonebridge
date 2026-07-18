@@ -1,6 +1,12 @@
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { ExtensionTranslationProvider } from '../core/translation/ExtensionTranslationProvider.js';
-import { DEFAULT_SETTINGS, STORAGE_KEYS, TRANSLATION_DELAY_MS } from '../shared/constants.js';
+import {
+  DEFAULT_SETTINGS,
+  MESSAGE_TYPES,
+  STORAGE_KEYS,
+  TRANSLATION_DELAY_MS,
+  TRANSLATION_MODES,
+} from '../shared/constants.js';
 import { isSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
 
 const provider = new ExtensionTranslationProvider();
@@ -23,9 +29,18 @@ export function useOverlayController() {
   const feedbackTimerRef = useRef(null);
   const requestIdRef = useRef(0);
   const suppressNextInputRef = useRef(false);
+  const settingsReadyRef = useRef(false);
   const enabledRef = useRef(true);
+  const modeRef = useRef(TRANSLATION_MODES.automatic);
   const cacheRef = useRef(new Map());
   const placementIdRef = useRef(0);
+
+  const rememberEditor = useCallback((editor) => {
+    if (!isSupportedEditor(editor) || editorRef.current === editor) return false;
+    editorRef.current = editor;
+    placementIdRef.current += 1;
+    return true;
+  }, []);
 
   const hide = useCallback(() => {
     clearTimeout(debounceTimerRef.current);
@@ -51,6 +66,7 @@ export function useOverlayController() {
       result: cachedResult,
       applied: false,
       copied: false,
+      placementId: placementIdRef.current,
       rect: editor.getBoundingClientRect(),
     }));
     if (cachedResult) return;
@@ -75,27 +91,38 @@ export function useOverlayController() {
   useEffect(() => {
     chrome.storage.sync.get(DEFAULT_SETTINGS).then((settings) => {
       enabledRef.current = settings[STORAGE_KEYS.enabled];
+      modeRef.current = settings[STORAGE_KEYS.translationMode];
+      settingsReadyRef.current = true;
     });
     const onStorage = (changes, area) => {
-      if (area !== 'sync' || !changes[STORAGE_KEYS.enabled]) return;
-      enabledRef.current = changes[STORAGE_KEYS.enabled].newValue;
-      if (!enabledRef.current) hide();
+      if (area !== 'sync') return;
+      if (changes[STORAGE_KEYS.enabled]) {
+        enabledRef.current = changes[STORAGE_KEYS.enabled].newValue;
+        if (!enabledRef.current) hide();
+      }
+      if (changes[STORAGE_KEYS.translationMode]) {
+        modeRef.current = changes[STORAGE_KEYS.translationMode].newValue;
+        if (modeRef.current === TRANSLATION_MODES.manual) hide();
+      }
     };
+    const onFocusIn = (event) => rememberEditor(event.target);
     const onInput = (event) => {
       if (suppressNextInputRef.current) {
         suppressNextInputRef.current = false;
         return;
       }
-      if (!enabledRef.current || !isSupportedEditor(event.target)) return;
-      if (editorRef.current !== event.target) {
-        editorRef.current = event.target;
-        placementIdRef.current += 1;
-      }
+      if (!settingsReadyRef.current || !enabledRef.current || !isSupportedEditor(event.target))
+        return;
+      rememberEditor(event.target);
       const text = readEditorText(event.target).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;
       if (!text) return hide();
+      if (modeRef.current === TRANSLATION_MODES.manual) {
+        setState((current) => ({ ...current, visible: false, loading: false }));
+        return;
+      }
 
       const editor = event.target;
       setState({
@@ -110,21 +137,46 @@ export function useOverlayController() {
     const onKeydown = (event) => {
       if (event.key === 'Escape') hide();
     };
+    const onRuntimeMessage = (message) => {
+      if (
+        message?.type !== MESSAGE_TYPES.translateFocusedEditor ||
+        !settingsReadyRef.current ||
+        !enabledRef.current
+      )
+        return false;
+      const activeEditor = isSupportedEditor(document.activeElement)
+        ? document.activeElement
+        : editorRef.current;
+      if (!activeEditor?.isConnected || !isSupportedEditor(activeEditor)) return false;
+
+      rememberEditor(activeEditor);
+      const text = readEditorText(activeEditor).trim();
+      clearTimeout(debounceTimerRef.current);
+      clearTimeout(feedbackTimerRef.current);
+      requestIdRef.current += 1;
+      if (!text) return false;
+      translate(text, activeEditor);
+      return false;
+    };
+    document.addEventListener('focusin', onFocusIn, true);
     document.addEventListener('input', onInput, true);
     document.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
     chrome.storage.onChanged.addListener(onStorage);
+    chrome.runtime.onMessage.addListener(onRuntimeMessage);
     return () => {
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
+      document.removeEventListener('focusin', onFocusIn, true);
       document.removeEventListener('input', onInput, true);
       document.removeEventListener('keydown', onKeydown, true);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);
       chrome.storage.onChanged.removeListener(onStorage);
+      chrome.runtime.onMessage.removeListener(onRuntimeMessage);
     };
-  }, [hide, reposition, translate]);
+  }, [hide, rememberEditor, reposition, translate]);
 
   const accept = useCallback(() => {
     const editor = editorRef.current;
