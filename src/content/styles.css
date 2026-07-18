@@ -1,0 +1,121 @@
+:host {
+  all: initial;
+}
+.tonebridge-card {
+  position: fixed;
+  z-index: 2147483647;
+  width: min(336px, calc(100vw - 24px));
+  overflow: hidden;
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  border-radius: 14px;
+  background: #fff;
+  box-shadow: 0 16px 40px rgba(15, 23, 42, 0.18);
+  color: #172033;
+  font:
+    14px/1.45 Inter,
+    ui-sans-serif,
+    system-ui,
+    sans-serif;
+}
+.tonebridge-card header {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 10px 12px;
+  border-bottom: 1px solid #eef1f6;
+}
+.tonebridge-card header strong {
+  flex: 1;
+  font-size: 13px;
+}
+.tonebridge-card header small {
+  color: #8992a3;
+  font-size: 10px;
+}
+.tonebridge-card header button {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: #697386;
+  cursor: pointer;
+  font-size: 20px;
+}
+.tonebridge-mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  place-items: center;
+  border-radius: 7px;
+  background: #5b5bd6;
+  color: #fff;
+  font-weight: 800;
+}
+.tonebridge-loading {
+  padding: 16px;
+  color: #596579;
+}
+.tonebridge-result p,
+.tonebridge-error p {
+  margin: 0;
+  padding: 14px;
+  white-space: pre-wrap;
+}
+.tonebridge-result p {
+  color: #172033;
+}
+.tonebridge-inline-message {
+  display: block;
+  margin: -7px 14px 10px;
+  color: #b54708;
+  font-size: 11px;
+}
+.tonebridge-error p {
+  color: #596579;
+}
+.tonebridge-actions {
+  display: flex;
+  gap: 7px;
+  padding: 0 14px 14px;
+}
+.tonebridge-actions button,
+.tonebridge-error button,
+.tonebridge-applied button {
+  padding: 7px 10px;
+  border: 1px solid #dfe3eb;
+  border-radius: 7px;
+  background: #fff;
+  color: #4f5b70;
+  cursor: pointer;
+  font: inherit;
+  font-size: 12px;
+  font-weight: 700;
+}
+.tonebridge-actions button.primary {
+  border-color: #5b5bd6;
+  background: #5b5bd6;
+  color: #fff;
+}
+.tonebridge-error button {
+  margin: 0 14px 14px;
+}
+.tonebridge-applied {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 14px;
+  color: #087443;
+}
+.tonebridge-applied button {
+  border-color: #bde8d1;
+  color: #087443;
+}
+.tonebridge-actions button:hover,
+.tonebridge-error button:hover,
+.tonebridge-applied button:hover {
+  filter: brightness(0.97);
+}

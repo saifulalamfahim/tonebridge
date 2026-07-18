@@ -1,0 +1,42 @@
+{
+  "name": "tonebridge",
+  "private": true,
+  "version": "0.3.0",
+  "type": "module",
+  "description": "A tone-preserving Bangla and Banglish to English writing assistant.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/saifulalamfahim/tonebridge.git"
+  },
+  "bugs": {
+    "url": "https://github.com/saifulalamfahim/tonebridge/issues"
+  },
+  "homepage": "https://github.com/saifulalamfahim/tonebridge#readme",
+  "scripts": {
+    "dev": "vite build --watch --mode development",
+    "build": "vite build && vite build --config vite.content.config.js",
+    "lint": "eslint .",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "test": "node --test",
+    "verify:build": "node scripts/verify-build.js",
+    "check": "npm run lint && npm run format:check && npm test && npm run build && npm run verify:build"
+  },
+  "engines": {
+    "node": ">=20.19.0"
+  },
+  "dependencies": {
+    "react": "19.2.7",
+    "react-dom": "19.2.7"
+  },
+  "devDependencies": {
+    "@eslint/js": "10.0.1",
+    "@vitejs/plugin-react": "6.0.3",
+    "eslint": "10.7.0",
+    "eslint-plugin-react-hooks": "7.1.1",
+    "eslint-plugin-react-refresh": "0.5.3",
+    "globals": "17.7.0",
+    "prettier": "3.9.5",
+    "vite": "8.1.5"
+  }
+}
