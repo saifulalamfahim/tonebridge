@@ -13,6 +13,22 @@ Its first client is a Chrome/Edge extension. When you pause after typing in a su
 
 ## Why ToneBridge exists
 
+Many Bengali speakers know exactly what they want to say, but expressing the same thought in English can become a barrier. Building a natural sentence takes time, the right word may not come to mind, and uncertainty about grammar can make a clear idea feel incomplete. A message that would be detailed, confident, and natural in Bangla may become shorter or less accurate simply because the writer knows less English.
+
+The usual workaround also interrupts the conversation:
+
+1. write the message in Bangla or Banglish somewhere else;
+2. open a separate translation tool;
+3. copy and paste the source text;
+4. copy the English result back into the original conversation;
+5. repair any meaning or tone that changed during translation.
+
+This repeated context switching costs time and makes real-time communication harder. General translation tools may also make a direct message more polite, turn a casual message formal, weaken emotion, or introduce wording the writer would never have chosen.
+
+ToneBridge is being built to remove that friction. The writer should be able to express the complete thought in Bangla or Banglish inside the current conversation, receive faithful English beside the same editor, and choose the result with one action. The goal is not to hide or replace English learning; it is to help people communicate clearly and independently while they are still building confidence in English.
+
+This can be especially valuable for Bangladeshi freelancers working with international clients. Clearer questions, updates, explanations, and replies can reduce misunderstandings and response delays without requiring another person to compose the English message or forcing the freelancer to move repeatedly between applications.
+
 General translators often make writing more formal, add explanations, remove nuance, or rewrite the idea. ToneBridge follows a narrower contract:
 
 - preserve every fact and intention;
@@ -157,3 +173,4 @@ ToneBridge currently uses a maintainer-led model while the architecture and beha
 Copyright 2026 ToneBridge contributors.
 
 Licensed under the [Apache License 2.0](LICENSE). Contributions are accepted under the same license.
+
