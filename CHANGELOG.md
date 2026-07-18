@@ -2,9 +2,9 @@
 
 All notable project changes are documented here. ToneBridge follows semantic versioning once compatibility guarantees stabilize; alpha versions may still change interfaces.
 
-## [Unreleased]
+## Unreleased
 
-## [0.3.0-alpha] — 2026-07-18
+## 0.3.0-alpha — 2026-07-18
 
 ### Added
 
@@ -23,6 +23,3 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - provider keys remain in the privileged background context and are never injected into webpages
 - password inputs are excluded from processing
 - translation history and analytics are not stored by ToneBridge
-
-[Unreleased]: https://github.com/saifulalamfahim/tonebridge/compare/v0.3.0-alpha...HEAD
-[0.3.0-alpha]: https://github.com/saifulalamfahim/tonebridge/releases/tag/v0.3.0-alpha
