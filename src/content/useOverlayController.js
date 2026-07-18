@@ -110,9 +110,68 @@ export function useOverlayController() {
     window.addEventListener('scroll', reposition, true);
     chrome.storage.onChanged.addListener(onStorage);
     return () => {
-      clearTimeout(debounceTimerRef.currmxã›h‘éì¶»§q«^t  };
+      clearTimeout(debounceTimerRef.current);
+      clearTimeout(feedbackTimerRef.current);
+      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('keydown', onKeydown, true);
+      window.removeEventListener('resize', reposition);
+      window.removeEventListener('scroll', reposition, true);
+      chrome.storage.onChanged.removeListener(onStorage);
+    };
+  }, [hide, reposition, translate]);
+
+  const accept = useCallback(() => {
+    const editor = editorRef.current;
+    const translation = state.result?.translation;
+    if (!editor || !translation) return;
+    const originalText = readEditorText(editor);
+    suppressNextInputRef.current = true;
+    replaceEditorText(editor, translation);
+    clearTimeout(feedbackTimerRef.current);
+    setState((current) => ({
+      ...current,
+      applied: true,
+      copied: false,
+      originalText,
+      appliedTranslation: translation,
+      rect: editor.getBoundingClientRect(),
+    }));
+    feedbackTimerRef.current = setTimeout(hide, 8_000);
+  }, [hide, state.result]);
+
+  const undo = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor || readEditorText(editor) !== state.appliedTranslation) return hide();
+    suppressNextInputRef.current = true;
+    replaceEditorText(editor, state.originalText);
+    hide();
+  }, [hide, state.appliedTranslation, state.originalText]);
+
+  const copy = useCallback(async () => {
+    const translation = state.result?.translation;
+    if (!translation) return;
+    try {
+      await navigator.clipboard.writeText(translation);
+      setState((current) => ({ ...current, copied: true }));
+      clearTimeout(feedbackTimerRef.current);
+      feedbackTimerRef.current = setTimeout(
+        () => setState((current) => ({ ...current, copied: false })),
+        2_000,
+      );
     } catch {
-      return { translation: '', message: 'ToneBridge could not reach its background service.' };
+      setState((current) => ({
+        ...current,
+        result: { ...current.result, message: 'Copy failed. Select the translation manually.' },
+      }));
     }
-  }
+  }, [state.result]);
+
+  const retry = useCallback(() => {
+    const editor = editorRef.current;
+    if (!editor) return;
+    const text = readEditorText(editor).trim();
+    if (text) translate(text, editor, { refresh: true });
+  }, [translate]);
+
+  return { ...state, accept, copy, hide, retry, undo };
 }
