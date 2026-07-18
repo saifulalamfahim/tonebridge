@@ -13,6 +13,7 @@ ToneBridge is developed in small, testable milestones. This roadmap communicates
 
 ## v0.4 — Browser reliability
 
+- draggable, viewport-bounded overlay positioning (implemented)
 - improve complex editor compatibility through adapters
 - better overlay positioning during scroll, resize, and dynamic layout changes
 - keyboard-first interactions and accessibility review

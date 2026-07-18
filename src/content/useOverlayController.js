@@ -11,6 +11,7 @@ const INITIAL_STATE = {
   rect: null,
   applied: false,
   copied: false,
+  placementId: 0,
   originalText: '',
   appliedTranslation: '',
 };
@@ -24,6 +25,7 @@ export function useOverlayController() {
   const suppressNextInputRef = useRef(false);
   const enabledRef = useRef(true);
   const cacheRef = useRef(new Map());
+  const placementIdRef = useRef(0);
 
   const hide = useCallback(() => {
     clearTimeout(debounceTimerRef.current);
@@ -85,7 +87,10 @@ export function useOverlayController() {
         return;
       }
       if (!enabledRef.current || !isSupportedEditor(event.target)) return;
-      editorRef.current = event.target;
+      if (editorRef.current !== event.target) {
+        editorRef.current = event.target;
+        placementIdRef.current += 1;
+      }
       const text = readEditorText(event.target).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
@@ -97,6 +102,7 @@ export function useOverlayController() {
         ...INITIAL_STATE,
         visible: true,
         loading: true,
+        placementId: placementIdRef.current,
         rect: editor.getBoundingClientRect(),
       });
       debounceTimerRef.current = setTimeout(() => translate(text, editor), TRANSLATION_DELAY_MS);

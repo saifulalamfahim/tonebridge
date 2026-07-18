@@ -43,6 +43,7 @@ See the complete [translation contract](docs/TRANSLATION_CONTRACT.md).
 
 - Bangla and Banglish input with English-only output
 - Floating overlay near standard inputs, textareas, and basic `contenteditable` elements
+- Draggable overlay that stays inside the visible browser viewport
 - One-click replace, copy, retry, dismiss, and short-lived undo
 - Debounced requests and stale-response protection while the user continues typing
 - Session-only result caching to reduce duplicate requests
