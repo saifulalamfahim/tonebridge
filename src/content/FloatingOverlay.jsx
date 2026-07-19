@@ -11,6 +11,16 @@ function getViewport() {
   return { width: window.innerWidth, height: window.innerHeight };
 }
 
+function getExtensionVersion() {
+  try {
+    return chrome.runtime.getManifest().version;
+  } catch {
+    return null;
+  }
+}
+
+const extensionVersion = getExtensionVersion();
+
 export function FloatingOverlay() {
   const {
     applied,
@@ -114,8 +124,6 @@ export function FloatingOverlay() {
 
   if (!visible || !rect || !position) return null;
 
-  const version = chrome.runtime.getManifest().version;
-
   return (
     <aside ref={cardRef} className="tonebridge-card" style={position} aria-live="polite">
       <header
@@ -135,7 +143,7 @@ export function FloatingOverlay() {
         </span>
         <span className="tonebridge-mark">T</span>
         <strong>ToneBridge</strong>
-        <small>v{version}</small>
+        {extensionVersion && <small>v{extensionVersion}</small>}
         <button type="button" aria-label="Dismiss suggestion" onClick={hide}>
           {'\u00d7'}
         </button>
