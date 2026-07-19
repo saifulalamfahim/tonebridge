@@ -42,7 +42,7 @@ Groq is an independent external service. Its free-tier limits, retention practic
 | Site rules         | Per-origin global, automatic, manual, or disabled choice | Chrome storage; may sync through the user's browser account             |
 | Undo text          | Immediate replacement interaction                        | Short-lived memory only                                                 |
 
-The popup can export non-secret settings as JSON, including the provider choice and local model name. Provider keys are deliberately excluded. **Delete all data** removes provider configuration, the API key, protected vocabulary, style preferences, site rules, and general preferences after explicit confirmation.
+The popup can export one non-secret JSON file containing global preferences, every saved per-origin site rule, protected vocabulary, style preferences, provider choice, and local model name. It is not a website-specific export and contains no messages, translation results, or provider key. **Delete ToneBridge data** removes provider configuration, the API key, protected vocabulary, style preferences, site rules, and general preferences from this browser after explicit confirmation; it does not delete data from any website.
 
 ## What ToneBridge deliberately avoids
 

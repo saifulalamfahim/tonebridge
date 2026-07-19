@@ -15,9 +15,21 @@ import {
   readEditorText,
   replaceEditorText,
 } from './editor.js';
+import { didEditorTextChange } from './editorChangePolicy.js';
 
 const provider = new ExtensionTranslationProvider();
-const siteOrigin = getSiteOrigin(window.location.href);
+const frameOrigin = getSiteOrigin(window.location.href);
+
+async function getTopLevelOrigin() {
+  try {
+    const response = await chrome.runtime.sendMessage({
+      type: MESSAGE_TYPES.getTopLevelSiteContext,
+    });
+    return response?.origin ?? frameOrigin;
+  } catch {
+    return frameOrigin;
+  }
+}
 const INITIAL_STATE = {
   visible: false,
   loading: false,
@@ -33,6 +45,8 @@ const INITIAL_STATE = {
 export function useOverlayController() {
   const [state, setState] = useState(INITIAL_STATE);
   const editorRef = useRef(null);
+  const observedEditorRef = useRef(null);
+  const observedTextRef = useRef('');
   const debounceTimerRef = useRef(null);
   const feedbackTimerRef = useRef(null);
   const requestIdRef = useRef(0);
@@ -42,6 +56,7 @@ export function useOverlayController() {
   const globalModeRef = useRef(TRANSLATION_MODES.automatic);
   const siteModesRef = useRef({});
   const effectiveModeRef = useRef(TRANSLATION_MODES.automatic);
+  const siteOriginRef = useRef(frameOrigin);
   const cacheRef = useRef(new Map());
   const placementIdRef = useRef(0);
 
@@ -100,16 +115,19 @@ export function useOverlayController() {
   }, []);
 
   useEffect(() => {
-    chrome.storage.sync.get(DEFAULT_SETTINGS).then((settings) => {
-      enabledRef.current = settings[STORAGE_KEYS.enabled];
-      globalModeRef.current = settings[STORAGE_KEYS.translationMode];
-      siteModesRef.current = settings[STORAGE_KEYS.siteModes];
-      effectiveModeRef.current = getEffectiveTranslationMode(
-        globalModeRef.current,
-        getSiteMode(siteModesRef.current, siteOrigin),
-      );
-      settingsReadyRef.current = true;
-    });
+    Promise.all([chrome.storage.sync.get(DEFAULT_SETTINGS), getTopLevelOrigin()]).then(
+      ([settings, topLevelOrigin]) => {
+        siteOriginRef.current = topLevelOrigin;
+        enabledRef.current = settings[STORAGE_KEYS.enabled];
+        globalModeRef.current = settings[STORAGE_KEYS.translationMode];
+        siteModesRef.current = settings[STORAGE_KEYS.siteModes];
+        effectiveModeRef.current = getEffectiveTranslationMode(
+          globalModeRef.current,
+          getSiteMode(siteModesRef.current, siteOriginRef.current),
+        );
+        settingsReadyRef.current = true;
+      },
+    );
     const onStorage = (changes, area) => {
       if (area !== 'sync') return;
       let modeChanged = false;
@@ -128,22 +146,36 @@ export function useOverlayController() {
       if (modeChanged) {
         effectiveModeRef.current = getEffectiveTranslationMode(
           globalModeRef.current,
-          getSiteMode(siteModesRef.current, siteOrigin),
+          getSiteMode(siteModesRef.current, siteOriginRef.current),
         );
         if (effectiveModeRef.current !== TRANSLATION_MODES.automatic) hide();
       }
     };
-    const onFocusIn = (event) => rememberEditor(findSupportedEditorFromEvent(event));
+    const onFocusIn = (event) => {
+      const editor = rememberEditor(findSupportedEditorFromEvent(event));
+      if (!editor) return;
+      observedEditorRef.current = editor;
+      observedTextRef.current = readEditorText(editor).trim();
+    };
     const onEditorChange = (event) => {
+      const editor = findSupportedEditorFromEvent(event);
+      if (!editor) return;
+      const text = readEditorText(editor).trim();
+      const textChanged = didEditorTextChange(
+        observedEditorRef.current,
+        observedTextRef.current,
+        editor,
+        text,
+      );
+      observedEditorRef.current = editor;
+      observedTextRef.current = text;
       if (suppressNextInputRef.current) {
         suppressNextInputRef.current = false;
         return;
       }
-      const editor = findSupportedEditorFromEvent(event);
-      if (!settingsReadyRef.current || !enabledRef.current || !editor) return;
+      if (!textChanged || !settingsReadyRef.current || !enabledRef.current) return;
       if (effectiveModeRef.current === SITE_MODES.disabled) return hide();
       rememberEditor(editor);
-      const text = readEditorText(editor).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;
@@ -167,7 +199,7 @@ export function useOverlayController() {
     };
     const onRuntimeMessage = (message, _sender, sendResponse) => {
       if (message?.type === MESSAGE_TYPES.getSiteContext) {
-        sendResponse({ origin: siteOrigin });
+        sendResponse({ origin: siteOriginRef.current });
         return false;
       }
       if (
@@ -182,6 +214,8 @@ export function useOverlayController() {
 
       rememberEditor(activeEditor);
       const text = readEditorText(activeEditor).trim();
+      observedEditorRef.current = activeEditor;
+      observedTextRef.current = text;
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;

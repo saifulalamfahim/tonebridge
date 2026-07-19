@@ -3,6 +3,7 @@ import { COMMANDS, DEFAULT_SETTINGS, MESSAGE_TYPES, STORAGE_KEYS } from '../shar
 import { assertValidSourceText } from '../shared/inputPolicy.js';
 import { migrateLocalSettings } from '../shared/migrations.js';
 import { normalizeProtectedTerms, normalizeStylePreferences } from '../shared/preferences.js';
+import { getSiteOrigin } from '../shared/siteSettings.js';
 
 async function protectLocalSecrets() {
   await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
@@ -37,6 +38,10 @@ chrome.commands.onCommand.addListener(async (command) => {
 });
 
 chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
+  if (message?.type === MESSAGE_TYPES.getTopLevelSiteContext) {
+    sendResponse({ origin: getSiteOrigin(_sender.tab?.url) });
+    return false;
+  }
   if (message?.type !== MESSAGE_TYPES.translate) return false;
 
   try {

@@ -9,8 +9,10 @@ Use invented Bangla/Banglish text only. Reload the unpacked extension and refres
 - [ ] A standard input, textarea, and generic contenteditable each show the overlay.
 - [ ] The overlay can be dragged, moved with arrow keys, reset by double-click, and never leaves the viewport.
 - [ ] Automatic and Manual triggers work; the configured shortcut translates only the focused editor.
+- [ ] In Manual mode, the result remains visible after every shortcut key is released.
 - [ ] Per-site Disabled blocks automatic and manual requests; other site choices persist after reload.
 - [ ] ChatGPT composer, Gmail compose, LinkedIn comment, and LinkedIn post modal show the overlay above the website UI.
+- [ ] Fiverr messaging shows **This site** controls and its embedded editor follows the top-level Fiverr site rule.
 - [ ] Continuing to type during a request never shows or inserts the stale result.
 - [ ] Password fields and empty fields never trigger translation.
 - [ ] Invalid Groq key, offline mode, and an oversized source leave the original text unchanged and show an actionable error.

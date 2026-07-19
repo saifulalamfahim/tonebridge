@@ -7,7 +7,7 @@ import {
   STORAGE_KEYS,
   TRANSLATION_MODES,
 } from '../shared/constants.js';
-import { getSiteMode, updateSiteMode } from '../shared/siteSettings.js';
+import { getSiteMode, getSiteOrigin, updateSiteMode } from '../shared/siteSettings.js';
 import {
   DEFAULT_STYLE_PREFERENCES,
   PROVIDER_IDS,
@@ -21,6 +21,8 @@ import { createUserDataExport } from '../shared/userData.js';
 async function getActiveSiteContext() {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
   if (!tab?.id) return null;
+  const tabOrigin = getSiteOrigin(tab.url);
+  if (tabOrigin) return { origin: tabOrigin };
   return chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.getSiteContext }).catch(() => null);
 }
 
@@ -285,12 +287,17 @@ export function App() {
           </span>
         </div>
         <label htmlFor="protected-terms">One exact term per line</label>
+        <p className="settings-explanation">
+          Save words that must stay exactly the same when they appear in your message. For example,
+          saving “Fiverr” prevents it from being renamed or translated. Terms are never added when
+          they are absent from your text. The list starts empty.
+        </p>
         <textarea
           id="protected-terms"
           rows="4"
           value={protectedTermsText}
           onChange={(event) => setProtectedTermsText(event.target.value)}
-          placeholder={'ToneBridge\nReact 19\nSaiful Alam Fahim'}
+          placeholder={'Example: Fiverr\nExample: React 19\nExample: your exact name'}
           spellCheck="false"
         />
         <div className="form-actions">
@@ -424,15 +431,20 @@ export function App() {
         <div className="section-heading">
           <span>
             <strong id="data-settings-heading">Your data</strong>
-            <small>Export settings or delete everything stored by ToneBridge</small>
+            <small>All ToneBridge settings stored by this browser</small>
           </span>
         </div>
+        <p className="settings-explanation">
+          Download one JSON file containing global preferences and every saved site rule. It never
+          includes messages, translations, or your API key. Delete removes ToneBridge settings from
+          this browser; it does not delete anything from websites.
+        </p>
         <div className="form-actions">
           <button type="button" onClick={exportUserData}>
-            Export settings
+            Download all settings
           </button>
           <button type="button" className="danger" onClick={deleteUserData}>
-            Delete all data
+            Delete ToneBridge data
           </button>
         </div>
         {dataStatus && (

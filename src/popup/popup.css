@@ -302,6 +302,11 @@ p {
   color: #697386;
   font-size: 11px;
 }
+.settings-explanation {
+  margin: 0 0 9px;
+  color: #697386;
+  font-size: 11px;
+}
 .form-actions {
   display: flex;
   align-items: center;

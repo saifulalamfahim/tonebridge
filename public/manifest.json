@@ -3,7 +3,7 @@
   "name": "ToneBridge",
   "version": "1.0.0",
   "description": "Convert Bangla and Banglish into natural English without changing your meaning or tone.",
-  "permissions": ["storage"],
+  "permissions": ["storage", "activeTab"],
   "host_permissions": [
     "https://api.groq.com/*",
     "http://127.0.0.1:11434/*",

@@ -37,6 +37,8 @@ Validate the public invented evaluation dataset independently with `npm run eval
 18. Use only the keyboard to move the overlay, reach every action, dismiss it, and restore an inserted translation.
 19. Enable reduced motion in the operating system and confirm ToneBridge remains usable without animation.
 20. Paste more than 8,000 invented characters and confirm ToneBridge rejects the request without contacting a provider.
+21. In Manual mode, invoke the shortcut and release every shortcut key; confirm the result remains visible until dismissed, replaced, or the source text changes.
+22. On a site whose editor lives in an iframe, confirm the editor inherits the top-level tab's Automatic, Manual, or Disabled rule.
 
 Use an invented public test sentence. Do not test with a private conversation or secret.
 

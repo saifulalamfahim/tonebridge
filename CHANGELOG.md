@@ -23,6 +23,9 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - versioned storage migrations, an 8,000-character source limit, and bounded provider requests
 - keyboard focus indicators, semantic status/error announcements, and reduced-motion behavior
 - repository secret scanning, manifest allowlist checks, and a verified CI build artifact
+- manual shortcut results that remain visible after shortcut-key release
+- top-level site-rule inheritance for editors embedded in website frames
+- clearer protected-vocabulary and complete-settings export explanations
 
 ### Changed
 
