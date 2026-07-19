@@ -19,7 +19,7 @@ function isStandardInput(element) {
 function isRichEditor(element) {
   if (!element || isDisabled(element)) return false;
   const editable = element.getAttribute?.('contenteditable');
-  return editable === 'true' || editable === 'plaintext-only';
+  return element.isContentEditable || editable === 'true' || editable === 'plaintext-only';
 }
 
 function getHostname(element, hostname) {
