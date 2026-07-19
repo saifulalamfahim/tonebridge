@@ -25,6 +25,15 @@ export function findSupportedEditor(target) {
   return candidate && isSupportedEditor(candidate) ? candidate : null;
 }
 
+export function findSupportedEditorFromEvent(event) {
+  const candidates = event.composedPath?.() ?? [event.target];
+  for (const candidate of candidates) {
+    const editor = findSupportedEditor(candidate);
+    if (editor) return editor;
+  }
+  return findSupportedEditor(event.target);
+}
+
 export function readEditorText(element) {
   if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)
     return element.value;

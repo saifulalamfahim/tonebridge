@@ -9,7 +9,12 @@ import {
   TRANSLATION_MODES,
 } from '../shared/constants.js';
 import { getEffectiveTranslationMode, getSiteMode, getSiteOrigin } from '../shared/siteSettings.js';
-import { findSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
+import {
+  findSupportedEditor,
+  findSupportedEditorFromEvent,
+  readEditorText,
+  replaceEditorText,
+} from './editor.js';
 
 const provider = new ExtensionTranslationProvider();
 const siteOrigin = getSiteOrigin(window.location.href);
@@ -128,13 +133,13 @@ export function useOverlayController() {
         if (effectiveModeRef.current !== TRANSLATION_MODES.automatic) hide();
       }
     };
-    const onFocusIn = (event) => rememberEditor(event.target);
-    const onInput = (event) => {
+    const onFocusIn = (event) => rememberEditor(findSupportedEditorFromEvent(event));
+    const onEditorChange = (event) => {
       if (suppressNextInputRef.current) {
         suppressNextInputRef.current = false;
         return;
       }
-      const editor = findSupportedEditor(event.target);
+      const editor = findSupportedEditorFromEvent(event);
       if (!settingsReadyRef.current || !enabledRef.current || !editor) return;
       if (effectiveModeRef.current === SITE_MODES.disabled) return hide();
       rememberEditor(editor);
@@ -185,7 +190,8 @@ export function useOverlayController() {
       return false;
     };
     document.addEventListener('focusin', onFocusIn, true);
-    document.addEventListener('input', onInput, true);
+    document.addEventListener('input', onEditorChange, true);
+    document.addEventListener('keyup', onEditorChange, true);
     document.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
@@ -195,7 +201,8 @@ export function useOverlayController() {
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       document.removeEventListener('focusin', onFocusIn, true);
-      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('input', onEditorChange, true);
+      document.removeEventListener('keyup', onEditorChange, true);
       document.removeEventListener('keydown', onKeydown, true);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);

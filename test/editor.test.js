@@ -33,7 +33,8 @@ globalThis.HTMLElement = MockHTMLElement;
 globalThis.HTMLInputElement = MockInputElement;
 globalThis.HTMLTextAreaElement = MockTextAreaElement;
 
-const { findSupportedEditor } = await import('../src/content/editor.js');
+const { findSupportedEditor, findSupportedEditorFromEvent } =
+  await import('../src/content/editor.js');
 
 test('resolves nested contenteditable targets to their real editing host', () => {
   const editor = new MockHTMLElement({ editable: true });
@@ -46,4 +47,16 @@ test('resolves nested contenteditable targets to their real editing host', () =>
 test('keeps standard form controls as their own editor', () => {
   const input = new MockInputElement();
   assert.equal(findSupportedEditor(input), input);
+});
+
+test('finds editors hidden behind a retargeted modal event', () => {
+  const editor = new MockHTMLElement({ editable: true });
+  editor.editingHost = editor;
+  const modalHost = new MockHTMLElement();
+  const event = {
+    target: modalHost,
+    composedPath: () => [editor, modalHost],
+  };
+
+  assert.equal(findSupportedEditorFromEvent(event), editor);
 });
