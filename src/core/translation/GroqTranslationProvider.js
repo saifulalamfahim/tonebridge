@@ -1,5 +1,6 @@
 import { TranslationProvider } from './TranslationProvider.js';
 import { buildTranslationPrompt } from './prompt.js';
+import { assertValidSourceText } from '../../shared/inputPolicy.js';
 
 export const GROQ_MODEL = 'openai/gpt-oss-120b';
 
@@ -28,6 +29,7 @@ export class GroqTranslationProvider extends TranslationProvider {
   }
 
   async translate(text) {
+    assertValidSourceText(text);
     if (!this.apiKey) throw new GroqApiError('A Groq API key is required.', 'MISSING_API_KEY');
 
     let response;

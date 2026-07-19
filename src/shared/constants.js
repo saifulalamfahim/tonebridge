@@ -5,6 +5,7 @@ export const STORAGE_KEYS = {
   stylePreferences: 'stylePreferences',
   providerId: 'providerId',
   localModel: 'localModel',
+  storageSchemaVersion: 'storageSchemaVersion',
   translationMode: 'translationMode',
   siteModes: 'siteModes',
 };

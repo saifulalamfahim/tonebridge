@@ -16,6 +16,18 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - per-site global, automatic, manual-only, and disabled behavior
 - trusted-context storage isolation that prevents content scripts from reading provider keys
 - deterministic site-rule and storage-isolation tests
+- a 30-case invented Bangla/Banglish faithfulness dataset and deterministic validation
+- protected vocabulary plus explicit spelling and contraction preferences
+- non-secret settings export and complete local-data deletion
+- optional loopback-only Ollama provider with explicit selection and no Groq fallback
+- versioned storage migrations, an 8,000-character source limit, and bounded provider requests
+- keyboard focus indicators, semantic status/error announcements, and reduced-motion behavior
+- repository secret scanning, manifest allowlist checks, and a verified CI build artifact
+
+### Changed
+
+- Groq and local providers now share one inspectable faithfulness prompt and normalized result contract
+- the roadmap now targets stable Chrome/Edge followed by Android; Firefox is out of current scope
 
 ## 0.3.0-alpha — 2026-07-18
 

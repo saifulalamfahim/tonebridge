@@ -25,3 +25,10 @@ jobs:
         run: npm ci
       - name: Run tests and build verification
         run: npm run check
+      - name: Upload verified unpacked extension
+        uses: actions/upload-artifact@v4
+        with:
+          name: tonebridge-extension-${{ github.sha }}
+          path: dist/
+          if-no-files-found: error
+          retention-days: 14

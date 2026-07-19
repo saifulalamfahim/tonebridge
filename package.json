@@ -20,8 +20,9 @@
     "format:check": "prettier --check .",
     "test": "node --test",
     "eval:dataset": "node scripts/validate-dataset.js",
+    "security:scan": "node scripts/scan-secrets.js",
     "verify:build": "node scripts/verify-build.js",
-    "check": "npm run lint && npm run format:check && npm run eval:dataset && npm test && npm run build && npm run verify:build"
+    "check": "npm run lint && npm run format:check && npm run security:scan && npm run eval:dataset && npm test && npm run build && npm run verify:build"
   },
   "engines": {
     "node": ">=20.19.0"

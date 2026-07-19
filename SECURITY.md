@@ -22,8 +22,11 @@ Never include API keys, private messages, passwords, personal information, brows
 
 - Password fields are excluded from processing.
 - API keys must never be committed, bundled, logged, or exposed to webpages/content scripts.
-- The personal-testing Groq key is stored in Chrome local extension storage.
-- Live translation text is sent to the configured provider only after the typing debounce.
+- The personal-testing Groq key is stored in protected Chrome local extension storage.
+- The local Ollama provider is restricted to loopback host permissions and has no hosted fallback.
+- Live translation text is sent to the explicitly configured provider only after the selected trigger.
+- Oversized source text is rejected before a provider request.
+- CI scans source files for common committed-secret signatures and validates the release manifest allowlist.
 - ToneBridge does not intentionally store translation history or operate analytics.
 - New host permissions, providers, or data collection require explicit security and privacy review.
 

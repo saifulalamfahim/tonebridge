@@ -14,6 +14,12 @@ A provider receives source text and returns a normalized English translation or 
 - avoid logging source text, output text, or credentials;
 - remain testable without a real paid request.
 
+## Provider API v1
+
+`TRANSLATION_PROVIDER_API_VERSION` is `1`. A provider constructor accepts its own configuration plus the shared protected-terms and style-preference values. Its asynchronous `translate(sourceText)` method must resolve to `{ translation, message }`, where `translation` and `message` are strings, or throw an error with a stable machine-readable `code` and a safe user-facing `message`.
+
+Breaking this shape, changing the meaning of an existing error code, or making a previously local provider send remote requests requires a new provider API version and migration notes. Adding an optional constructor setting or a new error code is backwards compatible when existing behavior remains unchanged.
+
 ## Secret isolation
 
 Hosted-provider credentials belong in `chrome.storage.local` and may be read only by the background worker. Never:

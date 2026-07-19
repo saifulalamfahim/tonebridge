@@ -11,7 +11,7 @@ npm install
 npm run check
 ```
 
-The gate runs ESLint, Prettier verification, Node provider tests, production builds, and bundle verification. Tests must not require a real API key or paid request.
+The gate runs ESLint, Prettier verification, a repository secret scan, dataset validation, Node tests, production builds, permission/version checks, and bundle verification. Tests must not require a real API key or paid request.
 
 Validate the public invented evaluation dataset independently with `npm run eval:dataset`. This command is also part of the complete check gate.
 
@@ -33,6 +33,10 @@ Validate the public invented evaluation dataset independently with `npm run eval
 14. Confirm password fields never trigger the overlay.
 15. Test without a key, with an invalid key, while offline, and after rate limiting where safely reproducible.
 16. Confirm no credentials or message text appear in page DevTools logs.
+17. Select **Ollama (local)**, configure an installed model, and confirm the request remains on `127.0.0.1:11434`. Stop Ollama and confirm the original text remains untouched with an actionable error.
+18. Use only the keyboard to move the overlay, reach every action, dismiss it, and restore an inserted translation.
+19. Enable reduced motion in the operating system and confirm ToneBridge remains usable without animation.
+20. Paste more than 8,000 invented characters and confirm ToneBridge rejects the request without contacting a provider.
 
 Use an invented public test sentence. Do not test with a private conversation or secret.
 
@@ -62,5 +66,5 @@ Before tagging a release:
 - `dist/` is not committed;
 - version numbers and changelog agree;
 - documentation reflects current behavior and limitations;
-- a secret scan finds no credentials;
+- `npm run security:scan` finds no credentials;
 - Chrome and Edge smoke tests pass for the supported editor types.

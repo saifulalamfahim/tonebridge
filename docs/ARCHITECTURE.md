@@ -55,6 +55,8 @@ This layer must not read or receive provider credentials.
 
 See [Provider guide](PROVIDER_GUIDE.md) before adding an engine.
 
+The provider result/error shape is versioned independently from provider-specific HTTP formats. Storage changes are normalized by `src/shared/migrations.js`; upgrades must preserve valid existing settings and advance the schema version explicitly.
+
 ### Popup
 
 `src/popup/` owns user-facing extension controls, global and per-site trigger selection, shortcut discovery, and API-key setup. The key is written to `chrome.storage.local`, whose access level is restricted to trusted extension contexts by the background worker. Ordinary enabled, translation-mode, and site-origin settings may use sync storage because they are not secrets.

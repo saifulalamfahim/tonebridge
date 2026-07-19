@@ -1,4 +1,5 @@
 import { normalizeLocalModel } from '../../shared/preferences.js';
+import { assertValidSourceText } from '../../shared/inputPolicy.js';
 import { TranslationProvider } from './TranslationProvider.js';
 import { buildTranslationPrompt } from './prompt.js';
 
@@ -22,6 +23,7 @@ export class LocalOpenAITranslationProvider extends TranslationProvider {
   }
 
   async translate(text) {
+    assertValidSourceText(text);
     if (!this.model)
       throw new LocalProviderError(
         'Enter the name of an installed Ollama model in ToneBridge settings.',
