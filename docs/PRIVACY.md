@@ -8,6 +8,7 @@ ToneBridge processes text that may be personal. This document explains the alpha
 - Password fields are excluded.
 - Offline demo matches make no network request.
 - Automatic mode sends eligible text after a typing pause; Manual mode sends it only after the user invokes the translation shortcut.
+- The user explicitly chooses hosted Groq or a loopback-only local Ollama provider.
 - A Groq API key is stored in Chrome local extension storage and used only by the background worker.
 - Protected vocabulary is stored locally in the same trusted extension context and is sent to the configured provider only as translation guidance.
 - Style choices are explicit, local preferences. ToneBridge does not learn a profile from messages or translation history.
@@ -18,8 +19,8 @@ ToneBridge processes text that may be personal. This document explains the alpha
 
 1. The extension observes the focused supported editor only when globally enabled and not disabled for the current site origin.
 2. In Automatic mode, the content script sends the current text after typing pauses for the configured debounce. In Manual mode, typing alone sends nothing; the current text is sent only after the user invokes the focused-editor shortcut.
-3. The background worker reads the locally stored provider key.
-4. It sends the source text and translation instructions to Groq.
+3. The background worker reads the locally stored provider selection and configuration.
+4. In Groq mode it sends the source text and instructions to Groq. In Ollama mode it sends them only to `127.0.0.1:11434`; there is no hosted fallback.
 5. The returned English text is displayed in the overlay.
 6. The original text changes only if the user explicitly selects **Replace**.
 
@@ -31,6 +32,8 @@ Groq is an independent external service. Its free-tier limits, retention practic
 | ------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Source text        | Content script, background worker, configured provider   | Not intentionally written to extension storage; provider policy applies |
 | Translation result | Overlay and short session cache                          | Current extension session only                                          |
+| Provider choice    | Popup and background routing                             | Protected `chrome.storage.local` until deleted                          |
+| Local model name   | Local Ollama request configuration                       | Protected `chrome.storage.local` until deleted                          |
 | Groq API key       | Trusted popup and background worker                      | Protected `chrome.storage.local` until removed                          |
 | Protected terms    | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until cleared                          |
 | Style preferences  | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until deleted                          |
@@ -39,7 +42,7 @@ Groq is an independent external service. Its free-tier limits, retention practic
 | Site rules         | Per-origin global, automatic, manual, or disabled choice | Chrome storage; may sync through the user's browser account             |
 | Undo text          | Immediate replacement interaction                        | Short-lived memory only                                                 |
 
-The popup can export non-secret settings as JSON. Provider keys are deliberately excluded. **Delete all data** removes the API key, protected vocabulary, style preferences, site rules, and general preferences after explicit confirmation.
+The popup can export non-secret settings as JSON, including the provider choice and local model name. Provider keys are deliberately excluded. **Delete all data** removes provider configuration, the API key, protected vocabulary, style preferences, site rules, and general preferences after explicit confirmation.
 
 ## What ToneBridge deliberately avoids
 

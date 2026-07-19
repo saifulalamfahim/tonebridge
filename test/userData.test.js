@@ -12,6 +12,8 @@ test('exports inspectable settings without API credentials', () => {
     },
     protectedTerms: ['ToneBridge'],
     stylePreferences: { spelling: 'british', contractions: 'prefer' },
+    providerId: 'local',
+    localModel: 'llama3.2:3b',
     now: new Date('2026-07-19T00:00:00.000Z'),
   });
 
@@ -19,5 +21,6 @@ test('exports inspectable settings without API credentials', () => {
   assert.equal(result.exportedAt, '2026-07-19T00:00:00.000Z');
   assert.deepEqual(result.settings.protectedTerms, ['ToneBridge']);
   assert.equal(result.settings.style.spelling, 'british');
+  assert.deepEqual(result.settings.provider, { id: 'local', localModel: 'llama3.2:3b' });
   assert.doesNotMatch(JSON.stringify(result), /api.?key|gsk_/i);
 });

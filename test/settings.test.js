@@ -30,6 +30,11 @@ test('declares a configurable focused-editor translation command', () => {
 
 test('keeps extension permissions minimal', () => {
   assert.deepEqual(manifest.permissions, ['storage']);
+  assert.deepEqual(manifest.host_permissions, [
+    'https://api.groq.com/*',
+    'http://127.0.0.1:11434/*',
+    'http://localhost:11434/*',
+  ]);
 });
 
 test('injects the editor bridge into embedded writing frames', () => {

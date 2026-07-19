@@ -1,4 +1,4 @@
-import { GroqTranslationProvider } from '../core/translation/GroqTranslationProvider.js';
+import { createTranslationProvider } from '../core/translation/providerFactory.js';
 import { COMMANDS, DEFAULT_SETTINGS, MESSAGE_TYPES, STORAGE_KEYS } from '../shared/constants.js';
 import { normalizeProtectedTerms, normalizeStylePreferences } from '../shared/preferences.js';
 
@@ -31,10 +31,18 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== MESSAGE_TYPES.translate) return false;
 
   chrome.storage.local
-    .get([STORAGE_KEYS.groqApiKey, STORAGE_KEYS.protectedTerms, STORAGE_KEYS.stylePreferences])
+    .get([
+      STORAGE_KEYS.groqApiKey,
+      STORAGE_KEYS.protectedTerms,
+      STORAGE_KEYS.stylePreferences,
+      STORAGE_KEYS.providerId,
+      STORAGE_KEYS.localModel,
+    ])
     .then(async (settings) => {
-      const provider = new GroqTranslationProvider({
-        apiKey: settings[STORAGE_KEYS.groqApiKey]?.trim(),
+      const provider = createTranslationProvider({
+        providerId: settings[STORAGE_KEYS.providerId],
+        groqApiKey: settings[STORAGE_KEYS.groqApiKey]?.trim(),
+        localModel: settings[STORAGE_KEYS.localModel],
         protectedTerms: normalizeProtectedTerms(settings[STORAGE_KEYS.protectedTerms]),
         stylePreferences: normalizeStylePreferences(settings[STORAGE_KEYS.stylePreferences]),
       });

@@ -50,6 +50,8 @@ Errors should help the user act without revealing credentials or raw provider pa
 
 The overlay must leave original text untouched on every failure.
 
-## Local engines
+## Local Ollama provider
 
-A future local provider should use the same normalized interface but may require a companion process, browser model runtime, or local HTTP service. Document installation size, hardware requirements, startup behavior, license, model provenance, supported languages, and whether any text leaves the device. “Local” must never be claimed when fallback requests can leave the device.
+ToneBridge includes an optional OpenAI-compatible Ollama adapter. It is deliberately restricted to the loopback endpoint `http://127.0.0.1:11434/v1/chat/completions` and never falls back to Groq. Users must install Ollama, choose and download a model whose license and hardware needs suit them, start Ollama, select **Ollama (local)**, and enter the exact installed model name.
+
+ToneBridge does not bundle a model, silently download one, expose Ollama to the local network, or promise that every model can preserve Bangla/Banglish meaning and tone. Model quality, size, speed, supported language coverage, and licensing vary. “Local” means the provider request remains on the user's computer; it does not imply that the model itself is private or suitable unless its provenance has been reviewed.

@@ -1,9 +1,21 @@
 import { DEFAULT_SETTINGS, STORAGE_KEYS } from './constants.js';
-import { normalizeProtectedTerms, normalizeStylePreferences } from './preferences.js';
+import {
+  normalizeLocalModel,
+  normalizeProtectedTerms,
+  normalizeProviderId,
+  normalizeStylePreferences,
+} from './preferences.js';
 
 export const USER_DATA_EXPORT_VERSION = 1;
 
-export function createUserDataExport({ syncSettings, protectedTerms, stylePreferences, now }) {
+export function createUserDataExport({
+  syncSettings,
+  protectedTerms,
+  stylePreferences,
+  providerId,
+  localModel,
+  now,
+}) {
   return {
     format: 'tonebridge-settings',
     version: USER_DATA_EXPORT_VERSION,
@@ -16,6 +28,10 @@ export function createUserDataExport({ syncSettings, protectedTerms, stylePrefer
       siteModes: syncSettings?.[STORAGE_KEYS.siteModes] ?? DEFAULT_SETTINGS[STORAGE_KEYS.siteModes],
       protectedTerms: normalizeProtectedTerms(protectedTerms),
       style: normalizeStylePreferences(stylePreferences),
+      provider: {
+        id: normalizeProviderId(providerId),
+        localModel: normalizeLocalModel(localModel),
+      },
     },
   };
 }

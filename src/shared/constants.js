@@ -3,6 +3,8 @@ export const STORAGE_KEYS = {
   groqApiKey: 'groqApiKey',
   protectedTerms: 'protectedTerms',
   stylePreferences: 'stylePreferences',
+  providerId: 'providerId',
+  localModel: 'localModel',
   translationMode: 'translationMode',
   siteModes: 'siteModes',
 };

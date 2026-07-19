@@ -204,6 +204,8 @@ p {
   font-size: 11px;
 }
 .api-settings,
+.provider-settings,
+.local-provider-settings,
 .vocabulary-settings,
 .style-settings,
 .data-settings {
@@ -241,6 +243,8 @@ p {
   color: #087443;
 }
 .api-settings label,
+.provider-settings label,
+.local-provider-settings label,
 .vocabulary-settings label {
   display: block;
   margin-bottom: 5px;
@@ -249,6 +253,7 @@ p {
   font-weight: 700;
 }
 .api-settings input,
+.local-provider-settings input,
 .vocabulary-settings textarea {
   width: 100%;
   padding: 9px 10px;
@@ -258,6 +263,7 @@ p {
   font: inherit;
 }
 .api-settings input:focus,
+.local-provider-settings input:focus,
 .vocabulary-settings textarea:focus {
   border-color: #5b5bd6;
   box-shadow: 0 0 0 3px #5b5bd61a;
@@ -281,6 +287,20 @@ p {
   background: #fff;
   color: #354052;
   font: inherit;
+}
+.provider-settings select {
+  width: 100%;
+  padding: 9px 10px;
+  border: 1px solid #d9dde6;
+  border-radius: 8px;
+  background: #fff;
+  color: #354052;
+  font: inherit;
+}
+.provider-note {
+  margin-top: 8px;
+  color: #697386;
+  font-size: 11px;
 }
 .form-actions {
   display: flex;
