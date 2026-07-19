@@ -113,6 +113,7 @@ test('selects dedicated ChatGPT and Gmail adapters before the generic adapter', 
 test('resolves nested rich-editor event targets to their editing host', () => {
   const editor = createElement({ attributes: { contenteditable: 'true' } });
   const paragraph = createElement();
+  paragraph.isContentEditable = true;
   paragraph.closestEditor = editor;
 
   assert.equal(findSupportedEditor(paragraph), editor);
