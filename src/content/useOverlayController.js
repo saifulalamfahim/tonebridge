@@ -9,7 +9,12 @@ import {
   TRANSLATION_MODES,
 } from '../shared/constants.js';
 import { getEffectiveTranslationMode, getSiteMode, getSiteOrigin } from '../shared/siteSettings.js';
-import { isSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
+import {
+  findSupportedEditor,
+  findSupportedEditorFromEvent,
+  readEditorText,
+  replaceEditorText,
+} from './editor.js';
 
 const provider = new ExtensionTranslationProvider();
 const siteOrigin = getSiteOrigin(window.location.href);
@@ -40,11 +45,12 @@ export function useOverlayController() {
   const cacheRef = useRef(new Map());
   const placementIdRef = useRef(0);
 
-  const rememberEditor = useCallback((editor) => {
-    if (!isSupportedEditor(editor) || editorRef.current === editor) return false;
+  const rememberEditor = useCallback((candidate) => {
+    const editor = findSupportedEditor(candidate);
+    if (!editor || editorRef.current === editor) return editor;
     editorRef.current = editor;
     placementIdRef.current += 1;
-    return true;
+    return editor;
   }, []);
 
   const hide = useCallback(() => {
@@ -127,17 +133,17 @@ export function useOverlayController() {
         if (effectiveModeRef.current !== TRANSLATION_MODES.automatic) hide();
       }
     };
-    const onFocusIn = (event) => rememberEditor(event.target);
-    const onInput = (event) => {
+    const onFocusIn = (event) => rememberEditor(findSupportedEditorFromEvent(event));
+    const onEditorChange = (event) => {
       if (suppressNextInputRef.current) {
         suppressNextInputRef.current = false;
         return;
       }
-      if (!settingsReadyRef.current || !enabledRef.current || !isSupportedEditor(event.target))
-        return;
+      const editor = findSupportedEditorFromEvent(event);
+      if (!settingsReadyRef.current || !enabledRef.current || !editor) return;
       if (effectiveModeRef.current === SITE_MODES.disabled) return hide();
-      rememberEditor(event.target);
-      const text = readEditorText(event.target).trim();
+      rememberEditor(editor);
+      const text = readEditorText(editor).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;
@@ -147,7 +153,6 @@ export function useOverlayController() {
         return;
       }
 
-      const editor = event.target;
       setState({
         ...INITIAL_STATE,
         visible: true,
@@ -172,10 +177,8 @@ export function useOverlayController() {
         effectiveModeRef.current === SITE_MODES.disabled
       )
         return false;
-      const activeEditor = isSupportedEditor(document.activeElement)
-        ? document.activeElement
-        : editorRef.current;
-      if (!activeEditor?.isConnected || !isSupportedEditor(activeEditor)) return false;
+      const activeEditor = findSupportedEditor(document.activeElement) ?? editorRef.current;
+      if (!activeEditor?.isConnected || !findSupportedEditor(activeEditor)) return false;
 
       rememberEditor(activeEditor);
       const text = readEditorText(activeEditor).trim();
@@ -187,7 +190,8 @@ export function useOverlayController() {
       return false;
     };
     document.addEventListener('focusin', onFocusIn, true);
-    document.addEventListener('input', onInput, true);
+    document.addEventListener('input', onEditorChange, true);
+    document.addEventListener('keyup', onEditorChange, true);
     document.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
@@ -197,7 +201,8 @@ export function useOverlayController() {
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       document.removeEventListener('focusin', onFocusIn, true);
-      document.removeEventListener('input', onInput, true);
+      document.removeEventListener('input', onEditorChange, true);
+      document.removeEventListener('keyup', onEditorChange, true);
       document.removeEventListener('keydown', onKeydown, true);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);

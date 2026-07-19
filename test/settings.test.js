@@ -32,6 +32,12 @@ test('keeps extension permissions minimal', () => {
   assert.deepEqual(manifest.permissions, ['storage']);
 });
 
+test('injects the editor bridge into embedded writing frames', () => {
+  const [contentScript] = manifest.content_scripts;
+  assert.equal(contentScript.all_frames, true);
+  assert.equal(contentScript.match_about_blank, true);
+});
+
 test('keeps the disabled site mode distinct from translation trigger modes', () => {
   assert.equal(SITE_MODES.automatic, TRANSLATION_MODES.automatic);
   assert.equal(SITE_MODES.manual, TRANSLATION_MODES.manual);

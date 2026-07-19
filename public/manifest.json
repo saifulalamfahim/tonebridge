@@ -17,6 +17,8 @@
     {
       "matches": ["http://*/*", "https://*/*"],
       "js": ["assets/content.js"],
+      "all_frames": true,
+      "match_about_blank": true,
       "run_at": "document_idle"
     }
   ]

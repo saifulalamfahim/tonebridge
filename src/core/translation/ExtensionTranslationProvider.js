@@ -23,7 +23,13 @@ export class ExtensionTranslationProvider extends TranslationProvider {
         translation: '',
         message: response?.error?.message ?? 'Translation failed. Please try again.',
       };
-    } catch {
+    } catch (error) {
+      if (/extension context invalidated/i.test(error?.message ?? '')) {
+        return {
+          translation: '',
+          message: 'ToneBridge was updated. Refresh this page once, then try again.',
+        };
+      }
       return { translation: '', message: 'ToneBridge could not reach its background service.' };
     }
   }
