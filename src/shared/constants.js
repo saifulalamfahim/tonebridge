@@ -1,6 +1,7 @@
 export const STORAGE_KEYS = {
   enabled: 'enabled',
   groqApiKey: 'groqApiKey',
+  protectedTerms: 'protectedTerms',
   translationMode: 'translationMode',
   siteModes: 'siteModes',
 };

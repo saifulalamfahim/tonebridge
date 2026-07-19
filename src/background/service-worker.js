@@ -1,5 +1,6 @@
 import { GroqTranslationProvider } from '../core/translation/GroqTranslationProvider.js';
 import { COMMANDS, DEFAULT_SETTINGS, MESSAGE_TYPES, STORAGE_KEYS } from '../shared/constants.js';
+import { normalizeProtectedTerms } from '../shared/preferences.js';
 
 async function protectLocalSecrets() {
   await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
@@ -30,10 +31,11 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
   if (message?.type !== MESSAGE_TYPES.translate) return false;
 
   chrome.storage.local
-    .get(STORAGE_KEYS.groqApiKey)
+    .get([STORAGE_KEYS.groqApiKey, STORAGE_KEYS.protectedTerms])
     .then(async (settings) => {
       const provider = new GroqTranslationProvider({
         apiKey: settings[STORAGE_KEYS.groqApiKey]?.trim(),
+        protectedTerms: normalizeProtectedTerms(settings[STORAGE_KEYS.protectedTerms]),
       });
       const result = await provider.translate(message.text);
       sendResponse({ ok: true, result });

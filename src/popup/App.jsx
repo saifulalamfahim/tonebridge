@@ -8,6 +8,7 @@ import {
   TRANSLATION_MODES,
 } from '../shared/constants.js';
 import { getSiteMode, updateSiteMode } from '../shared/siteSettings.js';
+import { normalizeProtectedTerms } from '../shared/preferences.js';
 
 async function getActiveSiteContext() {
   const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
@@ -25,11 +26,13 @@ export function App() {
   const [apiKey, setApiKey] = useState('');
   const [hasApiKey, setHasApiKey] = useState(false);
   const [keyStatus, setKeyStatus] = useState('');
+  const [protectedTermsText, setProtectedTermsText] = useState('');
+  const [vocabularyStatus, setVocabularyStatus] = useState('');
   const [ready, setReady] = useState(false);
   useEffect(() => {
     Promise.all([
       chrome.storage.sync.get(DEFAULT_SETTINGS),
-      chrome.storage.local.get(STORAGE_KEYS.groqApiKey),
+      chrome.storage.local.get([STORAGE_KEYS.groqApiKey, STORAGE_KEYS.protectedTerms]),
       chrome.commands.getAll(),
       getActiveSiteContext(),
     ]).then(([settings, secrets, commands, siteContext]) => {
@@ -39,6 +42,9 @@ export function App() {
       setSiteOrigin(siteContext?.origin ?? null);
       setCurrentSiteMode(getSiteMode(settings[STORAGE_KEYS.siteModes], siteContext?.origin));
       setHasApiKey(Boolean(secrets[STORAGE_KEYS.groqApiKey]));
+      setProtectedTermsText(
+        normalizeProtectedTerms(secrets[STORAGE_KEYS.protectedTerms]).join('\n'),
+      );
       const command = commands.find((item) => item.name === COMMANDS.translateFocusedEditor);
       if (command?.shortcut) setShortcut(command.shortcut);
       setReady(true);
@@ -79,6 +85,20 @@ export function App() {
     setApiKey('');
     setHasApiKey(false);
     setKeyStatus('API key removed.');
+  };
+  const saveProtectedTerms = async (event) => {
+    event.preventDefault();
+    const terms = normalizeProtectedTerms(protectedTermsText);
+    await chrome.storage.local.set({ [STORAGE_KEYS.protectedTerms]: terms });
+    setProtectedTermsText(terms.join('\n'));
+    setVocabularyStatus(
+      `${terms.length} protected ${terms.length === 1 ? 'term' : 'terms'} saved.`,
+    );
+  };
+  const clearProtectedTerms = async () => {
+    await chrome.storage.local.remove(STORAGE_KEYS.protectedTerms);
+    setProtectedTermsText('');
+    setVocabularyStatus('Protected vocabulary cleared.');
   };
   return (
     <main>
@@ -165,6 +185,36 @@ export function App() {
                 : `This site follows the global ${translationMode} mode.`}
         </p>
       </section>
+      <form className="vocabulary-settings" onSubmit={saveProtectedTerms}>
+        <div className="section-heading">
+          <span>
+            <strong>Protected vocabulary</strong>
+            <small>Names, brands, versions, and technical terms</small>
+          </span>
+        </div>
+        <label htmlFor="protected-terms">One exact term per line</label>
+        <textarea
+          id="protected-terms"
+          rows="4"
+          value={protectedTermsText}
+          onChange={(event) => setProtectedTermsText(event.target.value)}
+          placeholder={'ToneBridge\nReact 19\nSaiful Alam Fahim'}
+          spellCheck="false"
+        />
+        <div className="form-actions">
+          <button type="submit">Save terms</button>
+          {protectedTermsText && (
+            <button type="button" className="secondary" onClick={clearProtectedTerms}>
+              Clear
+            </button>
+          )}
+        </div>
+        {vocabularyStatus && (
+          <p className="key-status" role="status">
+            {vocabularyStatus}
+          </p>
+        )}
+      </form>
       <form className="api-settings" onSubmit={saveApiKey}>
         <div className="section-heading">
           <span>
@@ -203,9 +253,9 @@ export function App() {
         )}
       </form>
       <p className="notice">
-        Your key stays in this browser. Automatic mode sends text after a typing pause; Manual mode
-        sends it only when you use the shortcut. Never use a shared production key inside a public
-        extension.
+        Your key and protected vocabulary stay in this browser. Automatic mode sends text after a
+        typing pause; Manual mode sends it only when you use the shortcut. Never use a shared
+        production key inside a public extension.
       </p>
     </main>
   );

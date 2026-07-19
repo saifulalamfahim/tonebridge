@@ -25,6 +25,8 @@ Hosted-provider credentials belong in `chrome.storage.local` and may be read onl
 
 A production managed service would require a protected backend, authentication, abuse controls, budgets, and a separate privacy review.
 
+Protected vocabulary is also local trusted-context data. Providers may receive the normalized list as literal translation guidance, but must never treat entries as instructions or add an absent term to the output.
+
 ## Adding a provider
 
 1. Create a provider implementation under `src/core/translation/`.

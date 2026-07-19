@@ -203,7 +203,8 @@ p {
   color: #697386;
   font-size: 11px;
 }
-.api-settings {
+.api-settings,
+.vocabulary-settings {
   margin-top: 12px;
   padding: 14px;
   border: 1px solid #e5e8ef;
@@ -237,14 +238,16 @@ p {
   background: #e7f8ef;
   color: #087443;
 }
-.api-settings label {
+.api-settings label,
+.vocabulary-settings label {
   display: block;
   margin-bottom: 5px;
   color: #4f5b70;
   font-size: 11px;
   font-weight: 700;
 }
-.api-settings input {
+.api-settings input,
+.vocabulary-settings textarea {
   width: 100%;
   padding: 9px 10px;
   border: 1px solid #d9dde6;
@@ -252,9 +255,14 @@ p {
   outline: none;
   font: inherit;
 }
-.api-settings input:focus {
+.api-settings input:focus,
+.vocabulary-settings textarea:focus {
   border-color: #5b5bd6;
   box-shadow: 0 0 0 3px #5b5bd61a;
+}
+.vocabulary-settings textarea {
+  min-height: 84px;
+  resize: vertical;
 }
 .form-actions {
   display: flex;

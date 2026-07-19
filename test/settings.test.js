@@ -50,4 +50,5 @@ test('restricts local secret storage to trusted extension contexts', () => {
     'utf8',
   );
   assert.match(worker, /setAccessLevel\(\{ accessLevel: 'TRUSTED_CONTEXTS' \}\)/);
+  assert.match(worker, /STORAGE_KEYS\.protectedTerms/);
 });

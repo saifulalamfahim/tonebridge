@@ -28,6 +28,29 @@ test('returns a translation and sends the fidelity prompt', async () => {
   assert.equal(body.reasoning_format, 'hidden');
 });
 
+test('passes sanitized protected vocabulary as literal prompt data', async () => {
+  let body;
+  const provider = new GroqTranslationProvider({
+    apiKey: 'test-key',
+    protectedTerms: ['ToneBridge', 'tonebridge', 'React 19', 'x'.repeat(81)],
+    fetchImpl: async (_url, options) => {
+      body = JSON.parse(options.body);
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: 'ToneBridge works.' } }] }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    },
+  });
+
+  await provider.translate('ToneBridge kaj kore');
+  assert.match(body.messages[0].content, /Protected vocabulary/);
+  assert.match(body.messages[0].content, /\["ToneBridge","React 19"\]/);
+  assert.doesNotMatch(body.messages[0].content, /x{81}/);
+});
+
 test('preserves safe Groq error details for diagnosis', async () => {
   const provider = new GroqTranslationProvider({
     apiKey: 'test-key',
