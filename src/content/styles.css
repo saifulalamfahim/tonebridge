@@ -1,9 +1,14 @@
 :host {
   all: initial;
+  position: fixed;
+  z-index: 2147483647;
+  inset: 0;
+  pointer-events: none;
 }
 .tonebridge-card {
   position: fixed;
   z-index: 2147483647;
+  pointer-events: auto;
   width: min(336px, calc(100vw - 24px));
   overflow: hidden;
   border: 1px solid rgba(15, 23, 42, 0.12);
