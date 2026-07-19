@@ -9,7 +9,7 @@ import {
   TRANSLATION_MODES,
 } from '../shared/constants.js';
 import { getEffectiveTranslationMode, getSiteMode, getSiteOrigin } from '../shared/siteSettings.js';
-import { isSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
+import { findSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
 
 const provider = new ExtensionTranslationProvider();
 const siteOrigin = getSiteOrigin(window.location.href);
@@ -40,11 +40,13 @@ export function useOverlayController() {
   const cacheRef = useRef(new Map());
   const placementIdRef = useRef(0);
 
-  const rememberEditor = useCallback((editor) => {
-    if (!isSupportedEditor(editor) || editorRef.current === editor) return false;
+  const rememberEditor = useCallback((candidate) => {
+    const editor = findSupportedEditor(candidate);
+    if (!editor) return null;
+    if (editorRef.current === editor) return editor;
     editorRef.current = editor;
     placementIdRef.current += 1;
-    return true;
+    return editor;
   }, []);
 
   const hide = useCallback(() => {
@@ -57,7 +59,11 @@ export function useOverlayController() {
   const reposition = useCallback(() => {
     if (editorRef.current?.isConnected)
       setState((current) => ({ ...current, rect: editorRef.current.getBoundingClientRect() }));
-  }, []);
+    else if (editorRef.current) {
+      editorRef.current = null;
+      hide();
+    }
+  }, [hide]);
 
   const translate = useCallback(async (text, editor, { refresh = false } = {}) => {
     const requestId = ++requestIdRef.current;
@@ -133,11 +139,11 @@ export function useOverlayController() {
         suppressNextInputRef.current = false;
         return;
       }
-      if (!settingsReadyRef.current || !enabledRef.current || !isSupportedEditor(event.target))
-        return;
+      const editor = findSupportedEditor(event.target);
+      if (!settingsReadyRef.current || !enabledRef.current || !editor) return;
       if (effectiveModeRef.current === SITE_MODES.disabled) return hide();
-      rememberEditor(event.target);
-      const text = readEditorText(event.target).trim();
+      rememberEditor(editor);
+      const text = readEditorText(editor).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;
@@ -147,7 +153,6 @@ export function useOverlayController() {
         return;
       }
 
-      const editor = event.target;
       setState({
         ...INITIAL_STATE,
         visible: true,
@@ -172,10 +177,8 @@ export function useOverlayController() {
         effectiveModeRef.current === SITE_MODES.disabled
       )
         return false;
-      const activeEditor = isSupportedEditor(document.activeElement)
-        ? document.activeElement
-        : editorRef.current;
-      if (!activeEditor?.isConnected || !isSupportedEditor(activeEditor)) return false;
+      const activeEditor = findSupportedEditor(document.activeElement) ?? editorRef.current;
+      if (!activeEditor?.isConnected || !findSupportedEditor(activeEditor)) return false;
 
       rememberEditor(activeEditor);
       const text = readEditorText(activeEditor).trim();
@@ -191,6 +194,13 @@ export function useOverlayController() {
     document.addEventListener('keydown', onKeydown, true);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
+    const observer = new MutationObserver(() => {
+      if (editorRef.current && !editorRef.current.isConnected) {
+        editorRef.current = null;
+        hide();
+      }
+    });
+    observer.observe(document.documentElement, { childList: true, subtree: true });
     chrome.storage.onChanged.addListener(onStorage);
     chrome.runtime.onMessage.addListener(onRuntimeMessage);
     return () => {
@@ -201,6 +211,7 @@ export function useOverlayController() {
       document.removeEventListener('keydown', onKeydown, true);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);
+      observer.disconnect();
       chrome.storage.onChanged.removeListener(onStorage);
       chrome.runtime.onMessage.removeListener(onRuntimeMessage);
     };
@@ -209,7 +220,7 @@ export function useOverlayController() {
   const accept = useCallback(() => {
     const editor = editorRef.current;
     const translation = state.result?.translation;
-    if (!editor || !translation) return;
+    if (!editor?.isConnected || !translation) return hide();
     const originalText = readEditorText(editor);
     suppressNextInputRef.current = true;
     replaceEditorText(editor, translation);
@@ -227,7 +238,7 @@ export function useOverlayController() {
 
   const undo = useCallback(() => {
     const editor = editorRef.current;
-    if (!editor || readEditorText(editor) !== state.appliedTranslation) return hide();
+    if (!editor?.isConnected || readEditorText(editor) !== state.appliedTranslation) return hide();
     suppressNextInputRef.current = true;
     replaceEditorText(editor, state.originalText);
     hide();
@@ -254,10 +265,10 @@ export function useOverlayController() {
 
   const retry = useCallback(() => {
     const editor = editorRef.current;
-    if (!editor) return;
+    if (!editor?.isConnected) return hide();
     const text = readEditorText(editor).trim();
     if (text) translate(text, editor, { refresh: true });
-  }, [translate]);
+  }, [hide, translate]);
 
   return { ...state, accept, copy, hide, retry, undo };
 }

@@ -17,7 +17,7 @@ ToneBridge is developed in small, testable milestones. This roadmap communicates
 - automatic/manual trigger modes and configurable focused-editor shortcut (implemented)
 - trusted-context API-key isolation (implemented)
 - per-site global, automatic, manual-only, and disabled controls (implemented)
-- improve complex editor compatibility through adapters
+- reusable editor adapter registry with initial ChatGPT and Gmail adapters (implemented)
 - better overlay positioning during scroll, resize, and dynamic layout changes
 - keyboard-first interactions and accessibility review
 - expand deterministic browser and provider tests

@@ -34,6 +34,17 @@ The gate runs ESLint, Prettier verification, Node provider tests, production bui
 
 Use an invented public test sentence. Do not test with a private conversation or secret.
 
+## Complex editor smoke test
+
+Use invented text and test both Automatic and Manual-only behavior:
+
+1. In ChatGPT, type in the main composer, accept a translation, and confirm the text changes without sending the message.
+2. Confirm the caret ends after the replacement and the site's own undo restores the previous content where supported.
+3. Start another translation, navigate or remove the composer before the result returns, and confirm no stale overlay remains.
+4. In Gmail, repeat the test in a new compose window and a reply editor.
+5. Confirm multiline text retains readable line breaks and the editor remains usable after replacement.
+6. Confirm unrelated editable controls are handled by the generic adapter and password fields remain excluded.
+
 ## Translation review
 
 For translation changes, evaluate completeness, non-invention, intent, tone, naturalness, and entity preservation as defined by the [translation contract](TRANSLATION_CONTRACT.md). Exact string equality alone is insufficient because multiple faithful English translations may exist.
