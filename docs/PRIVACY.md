@@ -1,6 +1,6 @@
 # Privacy and Data Flow
 
-ToneBridge processes text that may be personal. This document explains the alpha's behavior so users and contributors can make informed decisions.
+ToneBridge processes text that may be personal. This document explains its behavior so users and contributors can make informed decisions.
 
 ## Summary
 
@@ -57,7 +57,7 @@ The popup can export non-secret settings as JSON, including the provider choice 
 
 ## User guidance
 
-The alpha should not be used for passwords, authentication codes, financial details, health records, legal secrets, or other high-risk content. Disable the extension when it is not needed and remove the provider key from the popup when testing is complete.
+ToneBridge should not be used for passwords, authentication codes, financial details, health records, legal secrets, or other high-risk content. Disable the extension when it is not needed and remove the provider key from the popup when testing is complete.
 
 ## Contributor privacy checklist
 

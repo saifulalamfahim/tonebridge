@@ -1,8 +1,8 @@
 # Changelog
 
-All notable project changes are documented here. ToneBridge follows semantic versioning once compatibility guarantees stabilize; alpha versions may still change interfaces.
+All notable project changes are documented here. ToneBridge follows semantic versioning from v1.0 onward; older alpha versions may change interfaces without compatibility guarantees.
 
-## Unreleased
+## 1.0.0 — pending final browser acceptance
 
 ### Added
 
