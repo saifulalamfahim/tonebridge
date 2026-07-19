@@ -13,6 +13,8 @@ npm run check
 
 The gate runs ESLint, Prettier verification, Node provider tests, production builds, and bundle verification. Tests must not require a real API key or paid request.
 
+Validate the public invented evaluation dataset independently with `npm run eval:dataset`. This command is also part of the complete check gate.
+
 ## Real-browser smoke test
 
 1. Run `npm run build`.

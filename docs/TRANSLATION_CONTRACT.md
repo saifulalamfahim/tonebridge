@@ -41,6 +41,8 @@ Natural English grammar is expected, but grammar correction is a consequence of 
 
 Expected translations are often non-unique. Review should focus on semantic and tonal equivalence, not exact string identity alone.
 
+The public invented evaluation set lives in `datasets/faithfulness.v1.json`. Its reference output is evidence of one acceptable result, not a requirement for exact string equality.
+
 ## Evaluation dimensions
 
 1. **Completeness:** Is every source detail present?
@@ -53,3 +55,5 @@ Expected translations are often non-unique. Review should focus on semantic and 
 ## Test data rules
 
 Use invented examples or data with clear, compatible licensing. Never contribute private conversations, customer text, personal information, credentials, or content copied from a service without permission. Each regression example should explain the failure it is designed to detect.
+
+Automated checks may enforce objective constraints such as entity preservation, prohibited additions, output script, and question signals. They must not claim to prove semantic or tonal equivalence. Those dimensions require rubric-based review.
