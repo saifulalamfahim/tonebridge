@@ -15,10 +15,11 @@ ToneBridge is developed in small, testable milestones. This roadmap communicates
 
 - draggable, viewport-bounded overlay positioning (implemented)
 - automatic/manual trigger modes and configurable focused-editor shortcut (implemented)
+- trusted-context API-key isolation (implemented)
+- per-site global, automatic, manual-only, and disabled controls (implemented)
 - improve complex editor compatibility through adapters
 - better overlay positioning during scroll, resize, and dynamic layout changes
 - keyboard-first interactions and accessibility review
-- clearer site controls and per-site disable behavior
 - expand deterministic browser and provider tests
 
 ## v0.5 — Faithfulness and personalization foundations

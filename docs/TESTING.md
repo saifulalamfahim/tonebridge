@@ -23,11 +23,14 @@ The gate runs ESLint, Prettier verification, Node provider tests, production bui
 6. Select **Manual**, type different invented text, wait, and confirm no overlay or provider request appears.
 7. Keep the editor focused, press the shortcut shown in the popup, and confirm the overlay appears for the current text.
 8. Open `chrome://extensions/shortcuts`, assign another shortcut, and confirm the popup and command use it.
-9. Confirm **Replace**, **Copy**, **Retry**, **Dismiss**, and **Undo** behave correctly.
-10. Continue typing while a request is in flight and confirm an older result never replaces the newest suggestion.
-11. Confirm password fields never trigger the overlay.
-12. Test without a key, with an invalid key, while offline, and after rate limiting where safely reproducible.
-13. Confirm no credentials or message text appear in page DevTools logs.
+9. Set **This site** to **Disabled** and confirm neither typing nor the shortcut creates an overlay or request.
+10. Test **Manual only**, **Automatic**, and **Use global**, then reload the page and confirm each saved rule persists.
+11. Confirm browser-internal pages show that site controls are unavailable.
+12. Confirm **Replace**, **Copy**, **Retry**, **Dismiss**, and **Undo** behave correctly.
+13. Continue typing while a request is in flight and confirm an older result never replaces the newest suggestion.
+14. Confirm password fields never trigger the overlay.
+15. Test without a key, with an invalid key, while offline, and after rate limiting where safely reproducible.
+16. Confirm no credentials or message text appear in page DevTools logs.
 
 Use an invented public test sentence. Do not test with a private conversation or secret.
 

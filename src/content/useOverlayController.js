@@ -3,13 +3,16 @@ import { ExtensionTranslationProvider } from '../core/translation/ExtensionTrans
 import {
   DEFAULT_SETTINGS,
   MESSAGE_TYPES,
+  SITE_MODES,
   STORAGE_KEYS,
   TRANSLATION_DELAY_MS,
   TRANSLATION_MODES,
 } from '../shared/constants.js';
+import { getEffectiveTranslationMode, getSiteMode, getSiteOrigin } from '../shared/siteSettings.js';
 import { isSupportedEditor, readEditorText, replaceEditorText } from './editor.js';
 
 const provider = new ExtensionTranslationProvider();
+const siteOrigin = getSiteOrigin(window.location.href);
 const INITIAL_STATE = {
   visible: false,
   loading: false,
@@ -31,7 +34,9 @@ export function useOverlayController() {
   const suppressNextInputRef = useRef(false);
   const settingsReadyRef = useRef(false);
   const enabledRef = useRef(true);
-  const modeRef = useRef(TRANSLATION_MODES.automatic);
+  const globalModeRef = useRef(TRANSLATION_MODES.automatic);
+  const siteModesRef = useRef({});
+  const effectiveModeRef = useRef(TRANSLATION_MODES.automatic);
   const cacheRef = useRef(new Map());
   const placementIdRef = useRef(0);
 
@@ -91,18 +96,35 @@ export function useOverlayController() {
   useEffect(() => {
     chrome.storage.sync.get(DEFAULT_SETTINGS).then((settings) => {
       enabledRef.current = settings[STORAGE_KEYS.enabled];
-      modeRef.current = settings[STORAGE_KEYS.translationMode];
+      globalModeRef.current = settings[STORAGE_KEYS.translationMode];
+      siteModesRef.current = settings[STORAGE_KEYS.siteModes];
+      effectiveModeRef.current = getEffectiveTranslationMode(
+        globalModeRef.current,
+        getSiteMode(siteModesRef.current, siteOrigin),
+      );
       settingsReadyRef.current = true;
     });
     const onStorage = (changes, area) => {
       if (area !== 'sync') return;
+      let modeChanged = false;
       if (changes[STORAGE_KEYS.enabled]) {
         enabledRef.current = changes[STORAGE_KEYS.enabled].newValue;
         if (!enabledRef.current) hide();
       }
       if (changes[STORAGE_KEYS.translationMode]) {
-        modeRef.current = changes[STORAGE_KEYS.translationMode].newValue;
-        if (modeRef.current === TRANSLATION_MODES.manual) hide();
+        globalModeRef.current = changes[STORAGE_KEYS.translationMode].newValue;
+        modeChanged = true;
+      }
+      if (changes[STORAGE_KEYS.siteModes]) {
+        siteModesRef.current = changes[STORAGE_KEYS.siteModes].newValue ?? {};
+        modeChanged = true;
+      }
+      if (modeChanged) {
+        effectiveModeRef.current = getEffectiveTranslationMode(
+          globalModeRef.current,
+          getSiteMode(siteModesRef.current, siteOrigin),
+        );
+        if (effectiveModeRef.current !== TRANSLATION_MODES.automatic) hide();
       }
     };
     const onFocusIn = (event) => rememberEditor(event.target);
@@ -113,13 +135,14 @@ export function useOverlayController() {
       }
       if (!settingsReadyRef.current || !enabledRef.current || !isSupportedEditor(event.target))
         return;
+      if (effectiveModeRef.current === SITE_MODES.disabled) return hide();
       rememberEditor(event.target);
       const text = readEditorText(event.target).trim();
       clearTimeout(debounceTimerRef.current);
       clearTimeout(feedbackTimerRef.current);
       requestIdRef.current += 1;
       if (!text) return hide();
-      if (modeRef.current === TRANSLATION_MODES.manual) {
+      if (effectiveModeRef.current === TRANSLATION_MODES.manual) {
         setState((current) => ({ ...current, visible: false, loading: false }));
         return;
       }
@@ -137,11 +160,16 @@ export function useOverlayController() {
     const onKeydown = (event) => {
       if (event.key === 'Escape') hide();
     };
-    const onRuntimeMessage = (message) => {
+    const onRuntimeMessage = (message, _sender, sendResponse) => {
+      if (message?.type === MESSAGE_TYPES.getSiteContext) {
+        sendResponse({ origin: siteOrigin });
+        return false;
+      }
       if (
         message?.type !== MESSAGE_TYPES.translateFocusedEditor ||
         !settingsReadyRef.current ||
-        !enabledRef.current
+        !enabledRef.current ||
+        effectiveModeRef.current === SITE_MODES.disabled
       )
         return false;
       const activeEditor = isSupportedEditor(document.activeElement)
