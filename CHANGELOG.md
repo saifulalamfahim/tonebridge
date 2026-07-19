@@ -13,6 +13,9 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - automatic and manual translation trigger modes
 - configurable focused-editor shortcut with `Alt+Shift+E` as the suggested default
 - settings migration that preserves existing user choices while adding new defaults
+- per-site global, automatic, manual-only, and disabled behavior
+- trusted-context storage isolation that prevents content scripts from reading provider keys
+- deterministic site-rule and storage-isolation tests
 
 ## 0.3.0-alpha — 2026-07-18
 

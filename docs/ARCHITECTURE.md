@@ -34,7 +34,7 @@ The source editor remains unchanged until the user selects **Replace**. If the t
 
 ### Content layer
 
-`src/content/` owns editor discovery, automatic debouncing, manual command handling, overlay state, user actions, and safe replacement. It supports standard inputs, textareas, and basic contenteditable elements. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
+`src/content/` owns editor discovery, per-site rule enforcement, automatic debouncing, manual command handling, overlay state, user actions, and safe replacement. It supports standard inputs, textareas, and basic contenteditable elements. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
 
 This layer must not read or receive provider credentials.
 
@@ -54,7 +54,7 @@ See [Provider guide](PROVIDER_GUIDE.md) before adding an engine.
 
 ### Popup
 
-`src/popup/` owns user-facing extension controls, trigger-mode selection, shortcut discovery, and API-key setup. The key is written to `chrome.storage.local`. Ordinary enabled and translation-mode settings may use sync storage because they are not secrets.
+`src/popup/` owns user-facing extension controls, global and per-site trigger selection, shortcut discovery, and API-key setup. The key is written to `chrome.storage.local`, whose access level is restricted to trusted extension contexts by the background worker. Ordinary enabled, translation-mode, and site-origin settings may use sync storage because they are not secrets.
 
 ## Trust boundaries
 
@@ -68,6 +68,7 @@ See [Provider guide](PROVIDER_GUIDE.md) before adding an engine.
 ## State and failure behavior
 
 - Debouncing prevents a request per keystroke.
+- Per-site rules are resolved before editor text can trigger a request; disabled sites reject both automatic and shortcut translation.
 - Session caching avoids repeated requests for identical text during the current extension context.
 - Request identity prevents an older response from replacing a newer suggestion.
 - Network, authentication, rate-limit, and malformed-response failures are converted into user-readable states.

@@ -45,6 +45,7 @@ See the complete [translation contract](docs/TRANSLATION_CONTRACT.md).
 - Floating overlay near standard inputs, textareas, and basic `contenteditable` elements
 - Draggable overlay that stays inside the visible browser viewport
 - Automatic translation after a typing pause or manual translation with a configurable shortcut
+- Per-site overrides for global, automatic, manual-only, or disabled behavior
 - One-click replace, copy, retry, dismiss, and short-lived undo
 - Debounced requests and stale-response protection while the user continues typing
 - Session-only result caching to reduce duplicate requests
@@ -116,7 +117,18 @@ Open the ToneBridge popup and choose the trigger that fits your workflow:
 
 The shortcut also works while Automatic mode is selected. Select **Change** beside the shortcut in the popup, or open `chrome://extensions/shortcuts`, to assign a different key combination. Chrome may leave a suggested shortcut unassigned when it conflicts with another extension; the popup shows the shortcut currently assigned by the browser.
 
-The key is stored in `chrome.storage.local`, not in source code or Chrome sync storage. Live text is sent to Groq through the extension background worker using `openai/gpt-oss-120b`. Groq controls free-tier limits, model availability, and its data handling terms; these may change independently of ToneBridge. ToneBridge never enables billing or makes paid requests automatically.
+### Per-site controls
+
+The **This site** control in the popup can override the global trigger for the current website origin:
+
+- **Use global** follows the Automatic or Manual trigger selected above.
+- **Automatic** always translates after a typing pause on this site.
+- **Manual only** sends text only after the shortcut is invoked on this site.
+- **Disabled** prevents both automatic and shortcut translation on this site.
+
+Site rules contain origins such as `https://mail.google.com`; they do not contain page paths, message text, or credentials. Browser-internal pages do not expose a site control because content scripts cannot run there.
+
+The key is stored in `chrome.storage.local`, not in source code or Chrome sync storage. Local secret storage is restricted to trusted extension contexts, preventing the content script from reading the key. Live text is sent to Groq through the extension background worker using `openai/gpt-oss-120b`. Groq controls free-tier limits, model availability, and its data handling terms; these may change independently of ToneBridge. ToneBridge never enables billing or makes paid requests automatically.
 
 Review [Privacy and data flow](docs/PRIVACY.md) before using live translation.
 

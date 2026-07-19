@@ -2,13 +2,25 @@ import { useEffect, useState } from 'react';
 import {
   COMMANDS,
   DEFAULT_SETTINGS,
+  MESSAGE_TYPES,
+  SITE_MODES,
   STORAGE_KEYS,
   TRANSLATION_MODES,
 } from '../shared/constants.js';
+import { getSiteMode, updateSiteMode } from '../shared/siteSettings.js';
+
+async function getActiveSiteContext() {
+  const [tab] = await chrome.tabs.query({ active: true, lastFocusedWindow: true });
+  if (!tab?.id) return null;
+  return chrome.tabs.sendMessage(tab.id, { type: MESSAGE_TYPES.getSiteContext }).catch(() => null);
+}
 
 export function App() {
   const [enabled, setEnabled] = useState(true);
   const [translationMode, setTranslationMode] = useState(TRANSLATION_MODES.automatic);
+  const [siteOrigin, setSiteOrigin] = useState(null);
+  const [siteModes, setSiteModes] = useState({});
+  const [currentSiteMode, setCurrentSiteMode] = useState(SITE_MODES.global);
   const [shortcut, setShortcut] = useState('Not assigned');
   const [apiKey, setApiKey] = useState('');
   const [hasApiKey, setHasApiKey] = useState(false);
@@ -19,9 +31,13 @@ export function App() {
       chrome.storage.sync.get(DEFAULT_SETTINGS),
       chrome.storage.local.get(STORAGE_KEYS.groqApiKey),
       chrome.commands.getAll(),
-    ]).then(([settings, secrets, commands]) => {
+      getActiveSiteContext(),
+    ]).then(([settings, secrets, commands, siteContext]) => {
       setEnabled(settings[STORAGE_KEYS.enabled]);
       setTranslationMode(settings[STORAGE_KEYS.translationMode]);
+      setSiteModes(settings[STORAGE_KEYS.siteModes]);
+      setSiteOrigin(siteContext?.origin ?? null);
+      setCurrentSiteMode(getSiteMode(settings[STORAGE_KEYS.siteModes], siteContext?.origin));
       setHasApiKey(Boolean(secrets[STORAGE_KEYS.groqApiKey]));
       const command = commands.find((item) => item.name === COMMANDS.translateFocusedEditor);
       if (command?.shortcut) setShortcut(command.shortcut);
@@ -36,6 +52,12 @@ export function App() {
   const chooseTranslationMode = async (mode) => {
     setTranslationMode(mode);
     await chrome.storage.sync.set({ [STORAGE_KEYS.translationMode]: mode });
+  };
+  const chooseSiteMode = async (mode) => {
+    const next = updateSiteMode(siteModes, siteOrigin, mode);
+    setSiteModes(next);
+    setCurrentSiteMode(mode);
+    await chrome.storage.sync.set({ [STORAGE_KEYS.siteModes]: next });
   };
   const openShortcutSettings = () => {
     chrome.tabs.create({ url: 'chrome://extensions/shortcuts' });
@@ -113,6 +135,35 @@ export function App() {
             Change
           </button>
         </div>
+      </section>
+      <section className="site-settings" aria-labelledby="site-settings-heading">
+        <div className="section-heading">
+          <span>
+            <strong id="site-settings-heading">This site</strong>
+            <small>{siteOrigin ? new URL(siteOrigin).hostname : 'Unavailable on this page'}</small>
+          </span>
+        </div>
+        <label htmlFor="site-mode">Translation behavior</label>
+        <select
+          id="site-mode"
+          value={currentSiteMode}
+          onChange={(event) => chooseSiteMode(event.target.value)}
+          disabled={!ready || !siteOrigin}
+        >
+          <option value={SITE_MODES.global}>Use global ({translationMode})</option>
+          <option value={SITE_MODES.automatic}>Automatic</option>
+          <option value={SITE_MODES.manual}>Manual only</option>
+          <option value={SITE_MODES.disabled}>Disabled</option>
+        </select>
+        <p>
+          {currentSiteMode === SITE_MODES.disabled
+            ? 'ToneBridge will not read or translate editor text on this site.'
+            : currentSiteMode === SITE_MODES.manual
+              ? 'Typing sends nothing. Use the focused editor shortcut to translate.'
+              : currentSiteMode === SITE_MODES.automatic
+                ? 'Translate after a short typing pause on this site.'
+                : `This site follows the global ${translationMode} mode.`}
+        </p>
       </section>
       <form className="api-settings" onSubmit={saveApiKey}>
         <div className="section-heading">

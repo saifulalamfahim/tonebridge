@@ -1,7 +1,14 @@
 import { GroqTranslationProvider } from '../core/translation/GroqTranslationProvider.js';
 import { COMMANDS, DEFAULT_SETTINGS, MESSAGE_TYPES, STORAGE_KEYS } from '../shared/constants.js';
 
+async function protectLocalSecrets() {
+  await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
+}
+
+protectLocalSecrets().catch(() => undefined);
+
 chrome.runtime.onInstalled.addListener(async () => {
+  await protectLocalSecrets();
   const keys = Object.keys(DEFAULT_SETTINGS);
   const current = await chrome.storage.sync.get(keys);
   const missing = Object.fromEntries(

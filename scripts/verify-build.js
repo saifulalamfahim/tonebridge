@@ -5,6 +5,8 @@ const distPath = resolve(import.meta.dirname, '..', 'dist');
 const manifest = JSON.parse(readFileSync(resolve(distPath, 'manifest.json'), 'utf8'));
 const contentPath = resolve(distPath, manifest.content_scripts[0].js[0]);
 const content = readFileSync(contentPath, 'utf8');
+const backgroundPath = resolve(distPath, manifest.background.service_worker);
+const background = readFileSync(backgroundPath, 'utf8');
 
 const failures = [];
 const requiredFiles = [
@@ -23,6 +25,8 @@ if (content.includes('process.env'))
   failures.push('Content script contains Node process.env references.');
 if (!manifest.commands?.['translate-focused-editor'])
   failures.push('Manifest is missing the focused-editor translation command.');
+if (!background.includes('TRUSTED_CONTEXTS'))
+  failures.push('Background bundle does not restrict local secret storage access.');
 
 if (failures.length) {
   console.error(failures.join('\n'));
