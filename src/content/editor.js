@@ -1,4 +1,6 @@
 const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'url']);
+const EDITOR_SELECTOR =
+  'textarea, input, [contenteditable="true"], [contenteditable="plaintext-only"]';
 
 export function isSupportedEditor(element) {
   if (!(element instanceof HTMLElement)) return false;
@@ -6,6 +8,21 @@ export function isSupportedEditor(element) {
   if (element instanceof HTMLInputElement)
     return TEXT_INPUT_TYPES.has(element.type) && !element.disabled && !element.readOnly;
   return element.isContentEditable;
+}
+
+export function findSupportedEditor(target) {
+  if (!(target instanceof HTMLElement)) return null;
+
+  if (target.isContentEditable) {
+    const editingHost = target.closest?.(
+      '[contenteditable="true"], [contenteditable="plaintext-only"]',
+    );
+    if (editingHost && isSupportedEditor(editingHost)) return editingHost;
+  }
+
+  if (isSupportedEditor(target)) return target;
+  const candidate = target.closest?.(EDITOR_SELECTOR);
+  return candidate && isSupportedEditor(candidate) ? candidate : null;
 }
 
 export function readEditorText(element) {
