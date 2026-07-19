@@ -1,6 +1,10 @@
 import assert from 'node:assert/strict';
 import test from 'node:test';
-import { MAX_PROTECTED_TERMS, normalizeProtectedTerms } from '../src/shared/preferences.js';
+import {
+  MAX_PROTECTED_TERMS,
+  normalizeProtectedTerms,
+  normalizeStylePreferences,
+} from '../src/shared/preferences.js';
 
 test('normalizes protected terms without changing accepted spelling', () => {
   assert.deepEqual(
@@ -14,4 +18,15 @@ test('rejects oversized terms and enforces the local vocabulary limit', () => {
   const result = normalizeProtectedTerms(values);
   assert.equal(result.length, MAX_PROTECTED_TERMS);
   assert.equal(result[0], 'term-0');
+});
+
+test('normalizes explicit style preferences to inspectable values', () => {
+  assert.deepEqual(normalizeStylePreferences({ spelling: 'british', contractions: 'avoid' }), {
+    spelling: 'british',
+    contractions: 'avoid',
+  });
+  assert.deepEqual(normalizeStylePreferences({ spelling: 'formal', contractions: 'sometimes' }), {
+    spelling: 'automatic',
+    contractions: 'automatic',
+  });
 });

@@ -1,5 +1,12 @@
 export const MAX_PROTECTED_TERMS = 50;
 export const MAX_PROTECTED_TERM_LENGTH = 80;
+export const DEFAULT_STYLE_PREFERENCES = {
+  spelling: 'automatic',
+  contractions: 'automatic',
+};
+
+const SPELLING_VALUES = new Set(['automatic', 'american', 'british']);
+const CONTRACTION_VALUES = new Set(['automatic', 'prefer', 'avoid']);
 
 function removeControlCharacters(value) {
   return Array.from(String(value), (character) => {
@@ -24,4 +31,15 @@ export function normalizeProtectedTerms(value) {
   }
 
   return terms;
+}
+
+export function normalizeStylePreferences(value) {
+  return {
+    spelling: SPELLING_VALUES.has(value?.spelling)
+      ? value.spelling
+      : DEFAULT_STYLE_PREFERENCES.spelling,
+    contractions: CONTRACTION_VALUES.has(value?.contractions)
+      ? value.contractions
+      : DEFAULT_STYLE_PREFERENCES.contractions,
+  };
 }

@@ -10,6 +10,7 @@ ToneBridge processes text that may be personal. This document explains the alpha
 - Automatic mode sends eligible text after a typing pause; Manual mode sends it only after the user invokes the translation shortcut.
 - A Groq API key is stored in Chrome local extension storage and used only by the background worker.
 - Protected vocabulary is stored locally in the same trusted extension context and is sent to the configured provider only as translation guidance.
+- Style choices are explicit, local preferences. ToneBridge does not learn a profile from messages or translation history.
 - Local secret storage is restricted to trusted extension contexts, so content scripts cannot read the provider key.
 - The normal enabled/disabled, translation-mode, and site-origin preferences may be stored with Chrome sync because they are not secrets.
 
@@ -32,10 +33,13 @@ Groq is an independent external service. Its free-tier limits, retention practic
 | Translation result | Overlay and short session cache                          | Current extension session only                                          |
 | Groq API key       | Trusted popup and background worker                      | Protected `chrome.storage.local` until removed                          |
 | Protected terms    | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until cleared                          |
+| Style preferences  | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until deleted                          |
 | Enabled preference | Popup/content behavior                                   | Chrome storage; may sync through the user's browser account             |
 | Translation mode   | Determines whether typing or a shortcut starts a request | Chrome storage; may sync through the user's browser account             |
 | Site rules         | Per-origin global, automatic, manual, or disabled choice | Chrome storage; may sync through the user's browser account             |
 | Undo text          | Immediate replacement interaction                        | Short-lived memory only                                                 |
+
+The popup can export non-secret settings as JSON. Provider keys are deliberately excluded. **Delete all data** removes the API key, protected vocabulary, style preferences, site rules, and general preferences after explicit confirmation.
 
 ## What ToneBridge deliberately avoids
 

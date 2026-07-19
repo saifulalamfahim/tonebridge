@@ -51,6 +51,29 @@ test('passes sanitized protected vocabulary as literal prompt data', async () =>
   assert.doesNotMatch(body.messages[0].content, /x{81}/);
 });
 
+test('applies explicit style preferences without weakening the fidelity contract', async () => {
+  let prompt;
+  const provider = new GroqTranslationProvider({
+    apiKey: 'test-key',
+    stylePreferences: { spelling: 'british', contractions: 'avoid' },
+    fetchImpl: async (_url, options) => {
+      prompt = JSON.parse(options.body).messages[0].content;
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: 'I will not go.' } }] }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    },
+  });
+
+  await provider.translate('ami jabo na');
+  assert.match(prompt, /British English spelling/);
+  assert.match(prompt, /Avoid English contractions/);
+  assert.match(prompt, /must never add information or change intent, tone/);
+});
+
 test('preserves safe Groq error details for diagnosis', async () => {
   const provider = new GroqTranslationProvider({
     apiKey: 'test-key',
