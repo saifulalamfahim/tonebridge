@@ -1,25 +1,36 @@
-import { resolveEditorAdapter, resolveEditorElement } from './editorAdapters.js';
+const TEXT_INPUT_TYPES = new Set(['text', 'search', 'email', 'url']);
 
 export function isSupportedEditor(element) {
-  return resolveEditorElement(element) === element && Boolean(resolveEditorAdapter(element));
-}
-
-export function findSupportedEditor(target) {
-  return resolveEditorElement(target);
-}
-
-export function getEditorAdapterId(element) {
-  return resolveEditorAdapter(element)?.adapter.id ?? null;
+  if (!(element instanceof HTMLElement)) return false;
+  if (element instanceof HTMLTextAreaElement) return !element.disabled && !element.readOnly;
+  if (element instanceof HTMLInputElement)
+    return TEXT_INPUT_TYPES.has(element.type) && !element.disabled && !element.readOnly;
+  return element.isContentEditable;
 }
 
 export function readEditorText(element) {
-  const descriptor = resolveEditorAdapter(element);
-  return descriptor ? descriptor.adapter.read(descriptor.element) : '';
+  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)
+    return element.value;
+  return element.textContent ?? '';
 }
 
 export function replaceEditorText(element, text) {
-  const descriptor = resolveEditorAdapter(element);
-  if (!descriptor) return false;
-  descriptor.adapter.replace(descriptor.element, text);
-  return true;
+  element.focus();
+  if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
+    const prototype =
+      element instanceof HTMLInputElement
+        ? HTMLInputElement.prototype
+        : HTMLTextAreaElement.prototype;
+    Object.getOwnPropertyDescriptor(prototype, 'value')?.set?.call(element, text);
+    element.dispatchEvent(
+      new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
+    );
+    element.dispatchEvent(new Event('change', { bubbles: true }));
+    element.setSelectionRange(text.length, text.length);
+    return;
+  }
+  element.textContent = text;
+  element.dispatchEvent(
+    new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
+  );
 }

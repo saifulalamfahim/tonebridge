@@ -46,9 +46,6 @@ See the complete [translation contract](docs/TRANSLATION_CONTRACT.md).
 - Draggable overlay that stays inside the visible browser viewport
 - Automatic translation after a typing pause or manual translation with a configurable shortcut
 - Per-site overrides for global, automatic, manual-only, or disabled behavior
-- Dedicated ChatGPT and Gmail adapters with a reusable complex-editor registry
-- Nested rich-editor target resolution and framework-compatible replacement
-- Predictable caret placement and detached-editor protection
 - One-click replace, copy, retry, dismiss, and short-lived undo
 - Debounced requests and stale-response protection while the user continues typing
 - Session-only result caching to reduce duplicate requests
@@ -147,12 +144,12 @@ General translation requires a configured provider. The demo is intentionally sm
 
 ## Supported editors and limitations
 
-The alpha supports standard text inputs, textareas, basic `contenteditable` elements, and initial dedicated adapters for ChatGPT and Gmail compose editors. Complex websites change independently, so these adapters still require real-browser verification after site updates. It does not yet guarantee support for:
+The alpha supports standard text inputs, textareas, and basic `contenteditable` elements on regular webpages. It does not yet guarantee support for:
 
 - password fields or browser-internal pages;
 - cross-origin iframes;
 - editors inside website Shadow DOMs;
-- complex rich-text editors outside the documented adapter set;
+- complex rich-text editors used by some social and productivity applications;
 - partial-selection translation or cursor-aware paragraph replacement;
 - Firefox, Android, iOS, Windows-wide, or macOS-wide input.
 
@@ -177,7 +174,6 @@ Password fields are deliberately excluded. Please report editor compatibility is
 - [Translation contract](docs/TRANSLATION_CONTRACT.md) — the behavioral definition of a faithful conversion
 - [Privacy and data flow](docs/PRIVACY.md) — what is processed, stored, and sent
 - [Provider guide](docs/PROVIDER_GUIDE.md) — how translation engines integrate safely
-- [Editor adapter guide](docs/EDITOR_ADAPTER_GUIDE.md) — how complex website editors integrate safely
 - [Testing guide](docs/TESTING.md) — automated and real-browser validation
 - [Roadmap](ROADMAP.md) — milestone direction without delivery-date promises
 - [Changelog](CHANGELOG.md) — notable project changes by version

@@ -16,10 +16,6 @@ All notable project changes are documented here. ToneBridge follows semantic ver
 - per-site global, automatic, manual-only, and disabled behavior
 - trusted-context storage isolation that prevents content scripts from reading provider keys
 - deterministic site-rule and storage-isolation tests
-- ordered editor-adapter registry with dedicated ChatGPT and Gmail detection
-- native input and rich-content replacement paths that notify host frameworks
-- nested editing-host resolution, predictable caret placement, and detached-editor cleanup
-- deterministic adapter-selection and replacement tests
 
 ## 0.3.0-alpha — 2026-07-18
 

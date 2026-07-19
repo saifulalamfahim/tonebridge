@@ -34,9 +34,7 @@ The source editor remains unchanged until the user selects **Replace**. If the t
 
 ### Content layer
 
-`src/content/` owns editor discovery, ordered adapter resolution, per-site rule enforcement, automatic debouncing, manual command handling, overlay state, user actions, and safe replacement. It supports standard controls, generic contenteditable elements, and dedicated ChatGPT/Gmail adapters. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
-
-`editorAdapters.js` resolves nested event targets to their editing host, selects the most specific adapter, and owns framework-compatible reading and replacement. The controller stores only the resolved host and rejects results when that host is detached or its text changes. See [Editor adapter guide](EDITOR_ADAPTER_GUIDE.md).
+`src/content/` owns editor discovery, per-site rule enforcement, automatic debouncing, manual command handling, overlay state, user actions, and safe replacement. It supports standard inputs, textareas, and basic contenteditable elements. The overlay mounts in a closed Shadow DOM so site CSS does not affect it and overlay CSS does not affect the site.
 
 This layer must not read or receive provider credentials.
 
@@ -73,7 +71,6 @@ See [Provider guide](PROVIDER_GUIDE.md) before adding an engine.
 - Per-site rules are resolved before editor text can trigger a request; disabled sites reject both automatic and shortcut translation.
 - Session caching avoids repeated requests for identical text during the current extension context.
 - Request identity prevents an older response from replacing a newer suggestion.
-- A document mutation observer closes the overlay when a dynamic application removes its editor.
 - Network, authentication, rate-limit, and malformed-response failures are converted into user-readable states.
 - A failure never modifies the source editor.
 - Undo retains only the short-lived replacement information needed for that interaction.
