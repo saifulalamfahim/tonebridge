@@ -29,7 +29,26 @@ test('declares a configurable focused-editor translation command', () => {
 });
 
 test('keeps extension permissions minimal', () => {
-  assert.deepEqual(manifest.permissions, ['storage']);
+  assert.deepEqual(manifest.permissions, ['storage', 'activeTab']);
+  assert.deepEqual(manifest.host_permissions, [
+    'https://api.groq.com/*',
+    'http://127.0.0.1:11434/*',
+    'http://localhost:11434/*',
+  ]);
+});
+
+test('resolves iframe settings through the top-level tab origin', () => {
+  const worker = readFileSync(
+    new URL('../src/background/service-worker.js', import.meta.url),
+    'utf8',
+  );
+  const controller = readFileSync(
+    new URL('../src/content/useOverlayController.js', import.meta.url),
+    'utf8',
+  );
+  assert.match(worker, /getTopLevelSiteContext/);
+  assert.match(worker, /_sender\.tab\?\.url/);
+  assert.match(controller, /siteOriginRef\.current/);
 });
 
 test('injects the editor bridge into embedded writing frames', () => {
@@ -50,4 +69,5 @@ test('restricts local secret storage to trusted extension contexts', () => {
     'utf8',
   );
   assert.match(worker, /setAccessLevel\(\{ accessLevel: 'TRUSTED_CONTEXTS' \}\)/);
+  assert.match(worker, /STORAGE_KEYS\.protectedTerms/);
 });

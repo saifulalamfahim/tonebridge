@@ -1,6 +1,11 @@
 export const STORAGE_KEYS = {
   enabled: 'enabled',
   groqApiKey: 'groqApiKey',
+  protectedTerms: 'protectedTerms',
+  stylePreferences: 'stylePreferences',
+  providerId: 'providerId',
+  localModel: 'localModel',
+  storageSchemaVersion: 'storageSchemaVersion',
   translationMode: 'translationMode',
   siteModes: 'siteModes',
 };
@@ -21,5 +26,6 @@ export const MESSAGE_TYPES = {
   translate: 'TRANSLATE_TEXT',
   translateFocusedEditor: 'TRANSLATE_FOCUSED_EDITOR',
   getSiteContext: 'GET_SITE_CONTEXT',
+  getTopLevelSiteContext: 'GET_TOP_LEVEL_SITE_CONTEXT',
 };
 export const COMMANDS = { translateFocusedEditor: 'translate-focused-editor' };

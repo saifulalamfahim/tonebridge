@@ -125,10 +125,15 @@ export function FloatingOverlay() {
   if (!visible || !rect || !position) return null;
 
   return (
-    <aside ref={cardRef} className="tonebridge-card" style={position} aria-live="polite">
+    <aside
+      ref={cardRef}
+      className="tonebridge-card"
+      style={position}
+      aria-label="ToneBridge translation suggestion"
+    >
       <header
         className="tonebridge-drag-handle"
-        tabIndex="0"
+        tabIndex={0}
         title="Drag to move. Double-click to return beside the editor."
         aria-label="ToneBridge suggestion window. Drag to move, or use the arrow keys."
         onPointerDown={startDrag}
@@ -157,10 +162,12 @@ export function FloatingOverlay() {
           </button>
         </div>
       ) : loading ? (
-        <div className="tonebridge-loading">Preparing a faithful English version{'\u2026'}</div>
+        <div className="tonebridge-loading" role="status" aria-live="polite">
+          Preparing a faithful English version{'\u2026'}
+        </div>
       ) : result?.translation ? (
         <div className="tonebridge-result">
-          <p>{result.translation}</p>
+          <p aria-live="polite">{result.translation}</p>
           {result.message && <small className="tonebridge-inline-message">{result.message}</small>}
           <div className="tonebridge-actions">
             <button className="primary" type="button" onClick={accept}>
@@ -175,7 +182,7 @@ export function FloatingOverlay() {
           </div>
         </div>
       ) : (
-        <div className="tonebridge-error">
+        <div className="tonebridge-error" role="alert">
           <p>{result?.message}</p>
           <button type="button" onClick={retry}>
             Try again

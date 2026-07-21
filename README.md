@@ -3,193 +3,151 @@
 [![CI](https://github.com/saifulalamfahim/tonebridge/actions/workflows/ci.yml/badge.svg)](https://github.com/saifulalamfahim/tonebridge/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4.svg)](public/manifest.json)
-[![Project status: alpha](https://img.shields.io/badge/status-alpha-orange.svg)](ROADMAP.md)
+[![Release](https://img.shields.io/badge/release-v1.0.0-2ea44f.svg)](https://github.com/saifulalamfahim/tonebridge/releases/tag/v1.0.0)
 
-ToneBridge is an open-source writing assistant that converts Bangla and Banglish into natural English while preserving the writer's meaning, tone, formality, emotional intensity, and amount of information.
+ToneBridge is an open-source writing assistant that converts Bangla and Banglish into natural English without changing the writer's meaning, tone, formality, emotional intensity, or amount of information.
 
-Its first client is a Chrome/Edge extension. When you pause after typing in a supported web editor, ToneBridge displays a floating English suggestion. You decide whether to replace the original text, copy the result, retry, or dismiss it.
+Its first client is a Chrome/Edge extension. Write inside a supported web editor, receive a floating English suggestion beside it, and explicitly replace or copy the result. No separate translation tab or repeated copy/paste loop is needed.
 
-> **Project status:** `v0.3.0-alpha` is an early, testable MVP. It is suitable for local experimentation, not yet for sensitive or production-critical communication.
+> **Status:** `v1.0.0` is the first stable Chrome and Edge release. See the completed [browser acceptance matrix](docs/V1_ACCEPTANCE.md) and [release process](docs/RELEASE_PROCESS.md).
 
-## Why ToneBridge exists
+## Why it exists
 
-Many Bengali speakers know exactly what they want to say, but expressing the same thought in English can become a barrier. Building a natural sentence takes time, the right word may not come to mind, and uncertainty about grammar can make a clear idea feel incomplete. A message that would be detailed, confident, and natural in Bangla may become shorter or less accurate simply because the writer knows less English.
+Many Bengali speakers know exactly what they want to communicate but need extra time to form the English sentence, recall words, or check grammar. Their detailed, confident Bangla thought can become shorter or less accurate because English is the barrier—not the idea.
 
-The usual workaround also interrupts the conversation:
+The common workaround interrupts the conversation: write elsewhere, open a translator, paste the source, copy the result back, then repair any tone or meaning that changed. This is particularly costly for Bangladeshi freelancers communicating with international clients.
 
-1. write the message in Bangla or Banglish somewhere else;
-2. open a separate translation tool;
-3. copy and paste the source text;
-4. copy the English result back into the original conversation;
-5. repair any meaning or tone that changed during translation.
+ToneBridge keeps that flow inside the original editor and follows a narrow [translation contract](docs/TRANSLATION_CONTRACT.md):
 
-This repeated context switching costs time and makes real-time communication harder. General translation tools may also make a direct message more polite, turn a casual message formal, weaken emotion, or introduce wording the writer would never have chosen.
-
-ToneBridge is being built to remove that friction. The writer should be able to express the complete thought in Bangla or Banglish inside the current conversation, receive faithful English beside the same editor, and choose the result with one action. The goal is not to hide or replace English learning; it is to help people communicate clearly and independently while they are still building confidence in English.
-
-This can be especially valuable for Bangladeshi freelancers working with international clients. Clearer questions, updates, explanations, and replies can reduce misunderstandings and response delays without requiring another person to compose the English message or forcing the freelancer to move repeatedly between applications.
-
-General translators often make writing more formal, add explanations, remove nuance, or rewrite the idea. ToneBridge follows a narrower contract:
-
-- preserve every fact and intention;
-- preserve casual, polite, direct, or emotional tone;
+- preserve every fact, question, intention, and emotional strength;
+- preserve casual, polite, formal, or direct tone;
 - produce natural English without redesigning the message;
-- never add advice, context, or an explanation;
-- keep the user in control of every replacement.
+- never add advice, context, an answer, or an explanation;
+- leave the original text unchanged until the user chooses **Replace**.
 
-See the complete [translation contract](docs/TRANSLATION_CONTRACT.md).
+## v1 capabilities
 
-## Current capabilities
+- Bangla, Banglish, and mixed input with English-only output
+- Standard inputs, textareas, generic contenteditable editors, and compatibility work for ChatGPT, Gmail, and LinkedIn
+- Floating Shadow DOM overlay above site UI, draggable by pointer or keyboard and bounded to the viewport
+- Automatic translation after a 650 ms pause or Manual translation through a configurable shortcut
+- Per-site global, automatic, manual-only, and disabled behavior
+- Replace, Copy, Retry, Dismiss, short-lived Undo, stale-result rejection, and a bounded session cache
+- Protected names, brands, versions, and technical terms
+- Explicit American/British spelling and contraction preferences without silent message-based profiling
+- Hosted Groq or optional loopback-only local Ollama; no paid service or billing is enabled by ToneBridge
+- Export of non-secret settings and complete deletion of locally stored ToneBridge data
+- Password-field exclusion, 8,000-character request limit, trusted credential isolation, narrow host permissions, and no analytics/history database
+- Versioned provider API and storage migrations for safe upgrades
+- Invented 30-case evaluation dataset, 44 deterministic tests, secret scanning, CI, and production-bundle verification
 
-- Bangla and Banglish input with English-only output
-- Floating overlay near standard inputs, textareas, and basic `contenteditable` elements
-- Draggable overlay that stays inside the visible browser viewport
-- Automatic translation after a typing pause or manual translation with a configurable shortcut
-- Per-site overrides for global, automatic, manual-only, or disabled behavior
-- One-click replace, copy, retry, dismiss, and short-lived undo
-- Debounced requests and stale-response protection while the user continues typing
-- Session-only result caching to reduce duplicate requests
-- Optional Groq-powered live translation using the user's own free-tier key
-- A small offline demo that works without an account or network request
-- Isolated overlay styles through a closed Shadow DOM
-- No translation-history database or analytics
-- Provider boundary designed for future hosted or local open-source engines
+See the exact [compatibility baseline](docs/COMPATIBILITY.md) and [privacy data flow](docs/PRIVACY.md).
 
-## How it works
+## Architecture
 
 ```text
-Web editor
-   |
-   v
-Content script: detect editor, debounce text, render isolated overlay
-   |
-   v
-Extension background worker: read local settings, call provider
-   |
-   v
-Translation provider: Groq today; replaceable provider interface for the future
+Supported web editor
+  -> content script resolves the editor and trigger policy
+  -> background worker reads protected provider settings
+  -> explicitly selected Groq or local Ollama provider
+  -> isolated overlay displays the normalized result
+  -> user chooses whether to replace the source text
 ```
 
-The API key is read only by the extension background worker. It is never injected into the webpage or sent to the content script. Read [Architecture](docs/ARCHITECTURE.md) for component boundaries and data flow.
+Provider credentials never enter the webpage or content script. Ollama mode sends requests only to `127.0.0.1:11434` and never silently falls back to Groq. Read [Architecture](docs/ARCHITECTURE.md) and the [Provider guide](docs/PROVIDER_GUIDE.md) before changing these boundaries.
 
 ## Install locally
 
-### Requirements
-
-- Node.js `20.19` or newer
-- npm
-- Chrome or Edge
-
-### Build the extension
+Requirements: Node.js `20.19` or newer, npm, and Chrome or Edge.
 
 ```bash
 git clone https://github.com/saifulalamfahim/tonebridge.git
 cd tonebridge
-npm install
+npm ci
 npm run build
 ```
 
-Then:
+Then open `chrome://extensions` or `edge://extensions`, enable **Developer mode**, choose **Load unpacked**, and select the generated `dist` folder. Refresh pages that were already open. After rebuilding, reload the extension and refresh the test page once.
 
-1. Open `chrome://extensions` or `edge://extensions`.
-2. Enable **Developer mode**.
-3. Select **Load unpacked**.
-4. Choose the generated `dist` directory.
-5. Refresh any webpage that was already open.
+## Choose a provider
 
-After a source change, rebuild and press **Reload** on the extension card before refreshing the test page.
+### Groq hosted mode
 
-## Enable free live translation
+1. Create a personal free-tier key at [Groq Console](https://console.groq.com/keys).
+2. Open ToneBridge and select **Groq (hosted)**.
+3. Save the key under **Groq API**.
 
-ToneBridge does not bundle or sell an API key.
+The key stays in protected local extension storage. Source text is sent to Groq only according to the selected Automatic/Manual/site trigger. Groq controls its own limits, retention, model availability, and terms; ToneBridge never enables billing or embeds a maintainer key.
 
-1. Create a free Groq API key at [console.groq.com/keys](https://console.groq.com/keys).
-2. Open the ToneBridge extension popup.
-3. Paste the key under **Groq API** and select **Save key**.
-4. Type Bangla or Banglish in a supported field and pause briefly.
+### Local Ollama mode
 
-## Translation modes
+1. Install Ollama separately and download a model suitable for Bangla/Banglish translation.
+2. Start Ollama, select **Ollama (local)**, and enter the exact installed model name.
+3. Test with invented text before relying on that model's quality.
 
-Open the ToneBridge popup and choose the trigger that fits your workflow:
+ToneBridge does not bundle or download a model. Model size, licensing, speed, and language quality vary. The fixed loopback connection is documented in the [Provider guide](docs/PROVIDER_GUIDE.md).
 
-- **Automatic** translates after you stop typing for a short moment. This is the default.
-- **Manual** makes no translation request while you type. Focus a supported editor and press `Alt+Shift+E` (`Command+Shift+E` on macOS) when you want a suggestion.
+Without a Groq key, three exact offline examples remain available only to demonstrate the interface; they are not a general translation engine.
 
-The shortcut also works while Automatic mode is selected. Select **Change** beside the shortcut in the popup, or open `chrome://extensions/shortcuts`, to assign a different key combination. Chrome may leave a suggested shortcut unassigned when it conflicts with another extension; the popup shows the shortcut currently assigned by the browser.
+## Controls and privacy
 
-### Per-site controls
+- **Automatic:** translate after typing pauses.
+- **Manual:** send nothing while typing; invoke the focused-editor shortcut shown in the popup.
+- **This site:** follow global behavior, force Automatic, force Manual, or disable ToneBridge for the entire origin.
+- **Protected vocabulary:** keep normalized terms literal when they appear in the source.
+- **Your data:** export inspectable non-secret JSON or delete provider configuration, credentials, vocabulary, style, and site rules.
 
-The **This site** control in the popup can override the global trigger for the current website origin:
+Never test with passwords, authentication codes, financial/health/legal secrets, private client messages, or production credentials. Read [Privacy](docs/PRIVACY.md) and [Security](SECURITY.md).
 
-- **Use global** follows the Automatic or Manual trigger selected above.
-- **Automatic** always translates after a typing pause on this site.
-- **Manual only** sends text only after the shortcut is invoked on this site.
-- **Disabled** prevents both automatic and shortcut translation on this site.
+## Development
 
-Site rules contain origins such as `https://mail.google.com`; they do not contain page paths, message text, or credentials. Browser-internal pages do not expose a site control because content scripts cannot run there.
+| Command                 | Purpose                                                     |
+| ----------------------- | ----------------------------------------------------------- |
+| `npm run dev`           | Rebuild source changes in development mode                  |
+| `npm run build`         | Produce the unpacked extension in `dist/`                   |
+| `npm run lint`          | Run ESLint                                                  |
+| `npm test`              | Run deterministic tests without a live key                  |
+| `npm run eval:dataset`  | Validate the public invented evaluation dataset             |
+| `npm run security:scan` | Detect common committed-secret signatures                   |
+| `npm run verify:build`  | Verify bundle targets, permissions, isolation, and versions |
+| `npm run check`         | Run the complete local quality gate                         |
+| `npm run release:check` | Run the required automated release gate                     |
 
-The key is stored in `chrome.storage.local`, not in source code or Chrome sync storage. Local secret storage is restricted to trusted extension contexts, preventing the content script from reading the key. Live text is sent to Groq through the extension background worker using `openai/gpt-oss-120b`. Groq controls free-tier limits, model availability, and its data handling terms; these may change independently of ToneBridge. ToneBridge never enables billing or makes paid requests automatically.
+## Built with Codex and GPT-5.6
 
-Review [Privacy and data flow](docs/PRIVACY.md) before using live translation.
+ToneBridge was developed for OpenAI Build Week with Codex and GPT-5.6 as the maintainer's primary development partner. The product idea, acceptance decisions, and final release approval remain the maintainer's responsibility.
 
-## Offline demo
+Codex accelerated the project by helping to:
 
-Without a configured key, the following exact examples demonstrate the interface without making a network request:
+- design the Manifest V3 architecture and isolate provider credentials in the background extension context;
+- implement the React interface, floating Shadow DOM overlay, provider system, privacy controls, and accessibility behavior;
+- diagnose compatibility failures in standard inputs and rich-text editors such as ChatGPT, Gmail, LinkedIn, and Fiverr;
+- create the translation contract, invented evaluation dataset, deterministic tests, secret scanning, build verification, and GitHub Actions workflow;
+- prepare contributor documentation, security guidance, release checks, and the v1 acceptance process.
 
-- `ami ajke jabo na`
-- `ajke ami jabo na`
-- `ami bujhte partasina eita keno hocche`
-
-General translation requires a configured provider. The demo is intentionally small and is not presented as a translation engine.
-
-## Supported editors and limitations
-
-The alpha supports standard text inputs, textareas, and basic `contenteditable` elements on regular webpages. It does not yet guarantee support for:
-
-- password fields or browser-internal pages;
-- cross-origin iframes;
-- editors inside website Shadow DOMs;
-- complex rich-text editors used by some social and productivity applications;
-- partial-selection translation or cursor-aware paragraph replacement;
-- Firefox, Android, iOS, Windows-wide, or macOS-wide input.
-
-Password fields are deliberately excluded. Please report editor compatibility issues with a public test page or a minimal reproduction—never with a private message or credential.
-
-## Development commands
-
-| Command                | Purpose                                                        |
-| ---------------------- | -------------------------------------------------------------- |
-| `npm run dev`          | Rebuild when source files change                               |
-| `npm run build`        | Produce the unpacked extension in `dist/`                      |
-| `npm run lint`         | Run ESLint                                                     |
-| `npm test`             | Run provider tests without a real API key                      |
-| `npm run format`       | Format supported files with Prettier                           |
-| `npm run format:check` | Verify formatting without changing files                       |
-| `npm run verify:build` | Validate the generated extension bundle                        |
-| `npm run check`        | Run linting, formatting, tests, build, and bundle verification |
+GPT-5.6 was used through Codex for architecture reasoning, implementation, debugging, test design, documentation, and release preparation. The runtime translation provider remains separately configurable: users can choose Groq-hosted OpenAI `gpt-oss` or a loopback-only local Ollama model. No paid API or embedded maintainer credential is required.
 
 ## Documentation
 
-- [Architecture](docs/ARCHITECTURE.md) — runtime components, trust boundaries, and data flow
-- [Translation contract](docs/TRANSLATION_CONTRACT.md) — the behavioral definition of a faithful conversion
-- [Privacy and data flow](docs/PRIVACY.md) — what is processed, stored, and sent
-- [Provider guide](docs/PROVIDER_GUIDE.md) — how translation engines integrate safely
-- [Testing guide](docs/TESTING.md) — automated and real-browser validation
-- [Roadmap](ROADMAP.md) — milestone direction without delivery-date promises
-- [Changelog](CHANGELOG.md) — notable project changes by version
-- [Contributing](CONTRIBUTING.md) — contribution workflow and quality expectations
-- [Security policy](SECURITY.md) — responsible vulnerability reporting
-- [Code of Conduct](CODE_OF_CONDUCT.md) — community participation standards
+- [Compatibility](docs/COMPATIBILITY.md)
+- [v1 final acceptance](docs/V1_ACCEPTANCE.md)
+- [Release process](docs/RELEASE_PROCESS.md)
+- [Architecture](docs/ARCHITECTURE.md)
+- [Translation contract](docs/TRANSLATION_CONTRACT.md)
+- [Privacy and data flow](docs/PRIVACY.md)
+- [Provider guide](docs/PROVIDER_GUIDE.md)
+- [Testing guide](docs/TESTING.md)
+- [Evaluation dataset](datasets/README.md)
+- [Android direction](docs/ANDROID_DIRECTION.md)
+- [Roadmap](ROADMAP.md)
+- [Changelog](CHANGELOG.md)
+- [Contributing](CONTRIBUTING.md), [Support](SUPPORT.md), and [Security](SECURITY.md)
 
 ## Contributing
 
-Contributions are welcome, especially reproducible editor-compatibility fixes, privacy improvements, provider adapters, documentation, and invented Bangla/Banglish evaluation cases. Start with [CONTRIBUTING.md](CONTRIBUTING.md), run `npm run check`, and explain how the change preserves the translation contract.
+Contributions are welcome through issues and pull requests. Use invented data, keep credentials and private messages out of commits, run `npm run check`, and explain how the change preserves the translation contract. The maintainer reviews changes before they join `main`; an external fork or pull request cannot silently alter a user's installed extension.
 
-Do not submit real private conversations, API keys, personal data, or copyrighted datasets without compatible licensing and documented provenance.
-
-## Project governance and scope
-
-ToneBridge currently uses a maintainer-led model while the architecture and behavioral contract stabilize. Important product changes should begin as a GitHub issue so intent, privacy impact, and scope can be discussed before implementation. The roadmap is directional and does not promise dates.
+ToneBridge currently uses a maintainer-led governance model while the browser contract stabilizes. See [CONTRIBUTING.md](CONTRIBUTING.md) for workflow and quality expectations.
 
 ## License
 

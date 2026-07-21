@@ -1,6 +1,6 @@
 # Privacy and Data Flow
 
-ToneBridge processes text that may be personal. This document explains the alpha's behavior so users and contributors can make informed decisions.
+ToneBridge processes text that may be personal. This document explains its behavior so users and contributors can make informed decisions.
 
 ## Summary
 
@@ -8,7 +8,10 @@ ToneBridge processes text that may be personal. This document explains the alpha
 - Password fields are excluded.
 - Offline demo matches make no network request.
 - Automatic mode sends eligible text after a typing pause; Manual mode sends it only after the user invokes the translation shortcut.
+- The user explicitly chooses hosted Groq or a loopback-only local Ollama provider.
 - A Groq API key is stored in Chrome local extension storage and used only by the background worker.
+- Protected vocabulary is stored locally in the same trusted extension context and is sent to the configured provider only as translation guidance.
+- Style choices are explicit, local preferences. ToneBridge does not learn a profile from messages or translation history.
 - Local secret storage is restricted to trusted extension contexts, so content scripts cannot read the provider key.
 - The normal enabled/disabled, translation-mode, and site-origin preferences may be stored with Chrome sync because they are not secrets.
 
@@ -16,8 +19,8 @@ ToneBridge processes text that may be personal. This document explains the alpha
 
 1. The extension observes the focused supported editor only when globally enabled and not disabled for the current site origin.
 2. In Automatic mode, the content script sends the current text after typing pauses for the configured debounce. In Manual mode, typing alone sends nothing; the current text is sent only after the user invokes the focused-editor shortcut.
-3. The background worker reads the locally stored provider key.
-4. It sends the source text and translation instructions to Groq.
+3. The background worker reads the locally stored provider selection and configuration.
+4. In Groq mode it sends the source text and instructions to Groq. In Ollama mode it sends them only to `127.0.0.1:11434`; there is no hosted fallback.
 5. The returned English text is displayed in the overlay.
 6. The original text changes only if the user explicitly selects **Replace**.
 
@@ -29,11 +32,17 @@ Groq is an independent external service. Its free-tier limits, retention practic
 | ------------------ | -------------------------------------------------------- | ----------------------------------------------------------------------- |
 | Source text        | Content script, background worker, configured provider   | Not intentionally written to extension storage; provider policy applies |
 | Translation result | Overlay and short session cache                          | Current extension session only                                          |
+| Provider choice    | Popup and background routing                             | Protected `chrome.storage.local` until deleted                          |
+| Local model name   | Local Ollama request configuration                       | Protected `chrome.storage.local` until deleted                          |
 | Groq API key       | Trusted popup and background worker                      | Protected `chrome.storage.local` until removed                          |
+| Protected terms    | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until cleared                          |
+| Style preferences  | Trusted popup, background worker, configured provider    | Protected `chrome.storage.local` until deleted                          |
 | Enabled preference | Popup/content behavior                                   | Chrome storage; may sync through the user's browser account             |
 | Translation mode   | Determines whether typing or a shortcut starts a request | Chrome storage; may sync through the user's browser account             |
 | Site rules         | Per-origin global, automatic, manual, or disabled choice | Chrome storage; may sync through the user's browser account             |
 | Undo text          | Immediate replacement interaction                        | Short-lived memory only                                                 |
+
+The popup can export one non-secret JSON file containing global preferences, every saved per-origin site rule, protected vocabulary, style preferences, provider choice, and local model name. It is not a website-specific export and contains no messages, translation results, or provider key. **Delete ToneBridge data** removes provider configuration, the API key, protected vocabulary, style preferences, site rules, and general preferences from this browser after explicit confirmation; it does not delete data from any website.
 
 ## What ToneBridge deliberately avoids
 
@@ -48,7 +57,7 @@ Groq is an independent external service. Its free-tier limits, retention practic
 
 ## User guidance
 
-The alpha should not be used for passwords, authentication codes, financial details, health records, legal secrets, or other high-risk content. Disable the extension when it is not needed and remove the provider key from the popup when testing is complete.
+ToneBridge should not be used for passwords, authentication codes, financial details, health records, legal secrets, or other high-risk content. Disable the extension when it is not needed and remove the provider key from the popup when testing is complete.
 
 ## Contributor privacy checklist
 

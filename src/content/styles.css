@@ -142,3 +142,15 @@
 .tonebridge-applied button:hover {
   filter: brightness(0.97);
 }
+.tonebridge-card button:focus-visible {
+  outline: 3px solid rgba(91, 91, 214, 0.35);
+  outline-offset: 2px;
+}
+@media (prefers-reduced-motion: reduce) {
+  .tonebridge-card,
+  .tonebridge-card * {
+    scroll-behavior: auto !important;
+    transition: none !important;
+    animation: none !important;
+  }
+}

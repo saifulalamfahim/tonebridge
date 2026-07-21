@@ -28,6 +28,52 @@ test('returns a translation and sends the fidelity prompt', async () => {
   assert.equal(body.reasoning_format, 'hidden');
 });
 
+test('passes sanitized protected vocabulary as literal prompt data', async () => {
+  let body;
+  const provider = new GroqTranslationProvider({
+    apiKey: 'test-key',
+    protectedTerms: ['ToneBridge', 'tonebridge', 'React 19', 'x'.repeat(81)],
+    fetchImpl: async (_url, options) => {
+      body = JSON.parse(options.body);
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: 'ToneBridge works.' } }] }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    },
+  });
+
+  await provider.translate('ToneBridge kaj kore');
+  assert.match(body.messages[0].content, /Protected vocabulary/);
+  assert.match(body.messages[0].content, /\["ToneBridge","React 19"\]/);
+  assert.doesNotMatch(body.messages[0].content, /x{81}/);
+});
+
+test('applies explicit style preferences without weakening the fidelity contract', async () => {
+  let prompt;
+  const provider = new GroqTranslationProvider({
+    apiKey: 'test-key',
+    stylePreferences: { spelling: 'british', contractions: 'avoid' },
+    fetchImpl: async (_url, options) => {
+      prompt = JSON.parse(options.body).messages[0].content;
+      return new Response(
+        JSON.stringify({ choices: [{ message: { content: 'I will not go.' } }] }),
+        {
+          status: 200,
+          headers: { 'Content-Type': 'application/json' },
+        },
+      );
+    },
+  });
+
+  await provider.translate('ami jabo na');
+  assert.match(prompt, /British English spelling/);
+  assert.match(prompt, /Avoid English contractions/);
+  assert.match(prompt, /must never add information or change intent, tone/);
+});
+
 test('preserves safe Groq error details for diagnosis', async () => {
   const provider = new GroqTranslationProvider({
     apiKey: 'test-key',

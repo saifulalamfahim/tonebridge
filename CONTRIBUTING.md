@@ -54,6 +54,8 @@ Use invented, non-sensitive fixtures. A useful case contains:
 
 Do not contribute copied private messages, customer data, credentials, medical or legal records, or unlicensed datasets. Document the source and license of any proposed dataset.
 
+Run `npm run eval:dataset` after editing `datasets/faithfulness.v1.json`. Deterministic constraints are regression guards, not proof that a translation is semantically or tonally correct.
+
 ## Pull request checklist
 
 A pull request should explain:
