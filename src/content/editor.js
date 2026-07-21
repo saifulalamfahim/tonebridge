@@ -40,6 +40,52 @@ export function readEditorText(element) {
   return element.textContent ?? '';
 }
 
+function dispatchReplacementInput(element, text) {
+  element.dispatchEvent(
+    new InputEvent('input', {
+      bubbles: true,
+      inputType: 'insertReplacementText',
+      data: text,
+    }),
+  );
+}
+
+function replaceContentEditableText(element, text) {
+  const documentRef = element.ownerDocument ?? document;
+  const selection = documentRef.getSelection?.();
+  const range = documentRef.createRange?.();
+
+  if (!selection || !range) {
+    element.textContent = text;
+    dispatchReplacementInput(element, text);
+    return;
+  }
+
+  range.selectNodeContents(element);
+  selection.removeAllRanges();
+  selection.addRange(range);
+
+  // Rich editors maintain their own document model. Using the browser editing
+  // command preserves that model and emits the native input lifecycle, while
+  // assigning textContent would destroy required paragraph/span structure.
+  try {
+    if (documentRef.execCommand?.('insertText', false, text)) return;
+  } catch {
+    // Fall through to a range-based replacement for editors/browsers that do
+    // not implement insertText through execCommand.
+  }
+
+  const activeRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : range;
+  activeRange.deleteContents();
+  const textNode = documentRef.createTextNode(text);
+  activeRange.insertNode(textNode);
+  activeRange.setStartAfter(textNode);
+  activeRange.collapse(true);
+  selection.removeAllRanges();
+  selection.addRange(activeRange);
+  dispatchReplacementInput(element, text);
+}
+
 export function replaceEditorText(element, text) {
   element.focus();
   if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement) {
@@ -55,8 +101,5 @@ export function replaceEditorText(element, text) {
     element.setSelectionRange(text.length, text.length);
     return;
   }
-  element.textContent = text;
-  element.dispatchEvent(
-    new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
-  );
+  replaceContentEditableText(element, text);
 }
