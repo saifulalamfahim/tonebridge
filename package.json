@@ -1,7 +1,7 @@
 {
   "name": "tonebridge",
   "private": true,
-  "version": "1.0.0",
+  "version": "1.0.1",
   "type": "module",
   "description": "A tone-preserving Bangla and Banglish to English writing assistant.",
   "repository": {

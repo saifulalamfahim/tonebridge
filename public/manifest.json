@@ -1,7 +1,7 @@
 {
   "manifest_version": 3,
   "name": "ToneBridge",
-  "version": "1.0.0",
+  "version": "1.0.1",
   "description": "Convert Bangla and Banglish into natural English without changing your meaning or tone.",
   "permissions": ["storage", "activeTab"],
   "host_permissions": [

@@ -2,6 +2,14 @@
 
 All notable project changes are documented here. ToneBridge follows semantic versioning from v1.0 onward; older alpha versions may change interfaces without compatibility guarantees.
 
+## 1.0.1 — 2026-07-21
+
+### Fixed
+
+- keep translated text selectable, copyable, removable, and editable after **Replace** in rich-text editors
+- preserve editor-managed paragraph and span structure by using the browser selection/editing pipeline
+- restore the caret after the range-based compatibility fallback
+
 ## 1.0.0 — 2026-07-21
 
 ### Added
