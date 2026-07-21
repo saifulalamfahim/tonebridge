@@ -3,13 +3,13 @@
 [![CI](https://github.com/saifulalamfahim/tonebridge/actions/workflows/ci.yml/badge.svg)](https://github.com/saifulalamfahim/tonebridge/actions/workflows/ci.yml)
 [![License](https://img.shields.io/badge/license-Apache--2.0-blue.svg)](LICENSE)
 [![Chrome MV3](https://img.shields.io/badge/Chrome-Manifest%20V3-4285F4.svg)](public/manifest.json)
-[![Release candidate](https://img.shields.io/badge/status-v1.0%20candidate-6f42c1.svg)](docs/V1_ACCEPTANCE.md)
+[![Release](https://img.shields.io/badge/release-v1.0.0-2ea44f.svg)](https://github.com/saifulalamfahim/tonebridge/releases/tag/v1.0.0)
 
 ToneBridge is an open-source writing assistant that converts Bangla and Banglish into natural English without changing the writer's meaning, tone, formality, emotional intensity, or amount of information.
 
 Its first client is a Chrome/Edge extension. Write inside a supported web editor, receive a floating English suggestion beside it, and explicitly replace or copy the result. No separate translation tab or repeated copy/paste loop is needed.
 
-> **Status:** The source and manifest are prepared as a `v1.0.0` release candidate. It becomes the official stable release only after the [final browser acceptance matrix](docs/V1_ACCEPTANCE.md) passes and the maintainer publishes the tag.
+> **Status:** `v1.0.0` is the first stable Chrome and Edge release. See the completed [browser acceptance matrix](docs/V1_ACCEPTANCE.md) and [release process](docs/RELEASE_PROCESS.md).
 
 ## Why it exists
 

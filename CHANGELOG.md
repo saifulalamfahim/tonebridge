@@ -2,7 +2,7 @@
 
 All notable project changes are documented here. ToneBridge follows semantic versioning from v1.0 onward; older alpha versions may change interfaces without compatibility guarantees.
 
-## 1.0.0 — pending final browser acceptance
+## 1.0.0 — 2026-07-21
 
 ### Added
 
