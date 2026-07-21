@@ -39,7 +39,7 @@ ToneBridge keeps that flow inside the original editor and follows a narrow [tran
 - Export of non-secret settings and complete deletion of locally stored ToneBridge data
 - Password-field exclusion, 8,000-character request limit, trusted credential isolation, narrow host permissions, and no analytics/history database
 - Versioned provider API and storage migrations for safe upgrades
-- Invented 30-case evaluation dataset, 41 deterministic tests, secret scanning, CI, and production-bundle verification
+- Invented 30-case evaluation dataset, 44 deterministic tests, secret scanning, CI, and production-bundle verification
 
 See the exact [compatibility baseline](docs/COMPATIBILITY.md) and [privacy data flow](docs/PRIVACY.md).
 
@@ -112,6 +112,20 @@ Never test with passwords, authentication codes, financial/health/legal secrets,
 | `npm run verify:build`  | Verify bundle targets, permissions, isolation, and versions |
 | `npm run check`         | Run the complete local quality gate                         |
 | `npm run release:check` | Run the required automated release gate                     |
+
+## Built with Codex and GPT-5.6
+
+ToneBridge was developed for OpenAI Build Week with Codex and GPT-5.6 as the maintainer's primary development partner. The product idea, acceptance decisions, and final release approval remain the maintainer's responsibility.
+
+Codex accelerated the project by helping to:
+
+- design the Manifest V3 architecture and isolate provider credentials in the background extension context;
+- implement the React interface, floating Shadow DOM overlay, provider system, privacy controls, and accessibility behavior;
+- diagnose compatibility failures in standard inputs and rich-text editors such as ChatGPT, Gmail, LinkedIn, and Fiverr;
+- create the translation contract, invented evaluation dataset, deterministic tests, secret scanning, build verification, and GitHub Actions workflow;
+- prepare contributor documentation, security guidance, release checks, and the v1 acceptance process.
+
+GPT-5.6 was used through Codex for architecture reasoning, implementation, debugging, test design, documentation, and release preparation. The runtime translation provider remains separately configurable: users can choose Groq-hosted OpenAI `gpt-oss` or a loopback-only local Ollama model. No paid API or embedded maintainer credential is required.
 
 ## Documentation
 
