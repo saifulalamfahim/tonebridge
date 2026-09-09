@@ -1,7 +1,7 @@
 {
   "name": "tonebridge",
   "private": true,
-  "version": "1.0.1",
+  "version": "2.0.0",
   "type": "module",
   "description": "A tone-preserving Bangla and Banglish to English writing assistant.",
   "repository": {
@@ -18,7 +18,8 @@
     "lint": "eslint .",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
-    "test": "node --test",
+    "test": "node --test test/*.test.js",
+    "test:browser": "playwright test",
     "eval:dataset": "node scripts/validate-dataset.js",
     "security:scan": "node scripts/scan-secrets.js",
     "verify:build": "node scripts/verify-build.js",
@@ -34,6 +35,7 @@
   },
   "devDependencies": {
     "@eslint/js": "10.0.1",
+    "@playwright/test": "^1.63.0",
     "@vitejs/plugin-react": "6.0.3",
     "eslint": "10.7.0",
     "eslint-plugin-react-hooks": "7.1.1",

@@ -9,7 +9,7 @@ ToneBridge is an open-source writing assistant that converts Bangla and Banglish
 
 Its first client is a Chrome/Edge extension. Write inside a supported web editor, receive a floating English suggestion beside it, and explicitly replace or copy the result. No separate translation tab or repeated copy/paste loop is needed.
 
-> **Status:** `v1.0.1` is the latest stable Chrome and Edge release. See the completed [browser acceptance matrix](docs/V1_ACCEPTANCE.md) and [release process](docs/RELEASE_PROCESS.md).
+> **Status:** This branch prepares `v2.0.0-rc.1` for Chrome and Edge. The last public stable release is `v1.0.1`. See the [v2 verification report](docs/V2_VERIFICATION.md) for the tested scope and remaining live-provider/site checks. AI output is a suggestion, not a guarantee of perfect fidelity.
 
 ## Why it exists
 
@@ -25,7 +25,7 @@ ToneBridge keeps that flow inside the original editor and follows a narrow [tran
 - never add advice, context, an answer, or an explanation;
 - leave the original text unchanged until the user chooses **Replace**.
 
-## v1 capabilities
+## Extension capabilities
 
 - Bangla, Banglish, and mixed input with English-only output
 - Standard inputs, textareas, generic contenteditable editors, and compatibility work for ChatGPT, Gmail, and LinkedIn
@@ -39,7 +39,18 @@ ToneBridge keeps that flow inside the original editor and follows a narrow [tran
 - Export of non-secret settings and complete deletion of locally stored ToneBridge data
 - Password-field exclusion, 8,000-character request limit, trusted credential isolation, narrow host permissions, and no analytics/history database
 - Versioned provider API and storage migrations for safe upgrades
-- Invented 30-case evaluation dataset, 44 deterministic tests, secret scanning, CI, and production-bundle verification
+- Invented 30-case evaluation dataset, deterministic tests, isolated Chromium regressions, secret scanning, CI, and production-bundle verification
+
+### New in v2
+
+- Stricter translation-only instructions, minimal correction of English grammar/spelling, and explicit preservation of questions, negation, uncertainty, facts, tone, and paragraph breaks
+- Rejection of incomplete provider output, missing protected terms/URLs, and common added translation labels
+- Suggestions bound to the original editor and source; changing fields cannot apply an old result to a new field
+- IME composition protection and cache invalidation when provider/style/vocabulary settings change
+- Keyboard-editable replacement and multiline Replace/Undo browser regressions
+- No raw cloud-provider error body is copied into the webpage
+
+These checks reduce known failure modes; they cannot prove that every AI output preserves meaning. Review important messages before sending. Protected vocabulary preserves exact spelling, including any typo you deliberately add to that list.
 
 See the exact [compatibility baseline](docs/COMPATIBILITY.md) and [privacy data flow](docs/PRIVACY.md).
 

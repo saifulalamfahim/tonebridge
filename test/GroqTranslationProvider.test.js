@@ -74,7 +74,7 @@ test('applies explicit style preferences without weakening the fidelity contract
   assert.match(prompt, /must never add information or change intent, tone/);
 });
 
-test('preserves safe Groq error details for diagnosis', async () => {
+test('does not echo untrusted provider error details into the webpage', async () => {
   const provider = new GroqTranslationProvider({
     apiKey: 'test-key',
     fetchImpl: async () =>
@@ -86,7 +86,7 @@ test('preserves safe Groq error details for diagnosis', async () => {
   await assert.rejects(provider.translate('hello'), (error) => {
     assert.equal(error.code, 'REQUEST_FAILED');
     assert.match(error.message, /HTTP 400/);
-    assert.match(error.message, /selected model is unavailable/);
+    assert.doesNotMatch(error.message, /selected model is unavailable/);
     return true;
   });
 });
@@ -109,4 +109,12 @@ test('returns a clear free-tier rate-limit error', async () => {
     assert.equal(error.code, 'RATE_LIMIT');
     return true;
   });
+});
+
+test('malformed JSON is not mislabeled as a connection failure', async () => {
+  const provider = new GroqTranslationProvider({
+    apiKey: 'test-key',
+    fetchImpl: async () => new Response('{', { status: 200 }),
+  });
+  await assert.rejects(provider.translate('ami jabo'), { code: 'INVALID_RESPONSE' });
 });

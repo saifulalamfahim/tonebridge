@@ -23,6 +23,7 @@ export const DEFAULT_SETTINGS = {
 };
 export const TRANSLATION_DELAY_MS = 650;
 export const MESSAGE_TYPES = {
+  preferencesChanged: 'PREFERENCES_CHANGED',
   translate: 'TRANSLATE_TEXT',
   translateFocusedEditor: 'TRANSLATE_FOCUSED_EDITOR',
   getSiteContext: 'GET_SITE_CONTEXT',

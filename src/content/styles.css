@@ -89,6 +89,9 @@
 }
 .tonebridge-result p {
   color: #172033;
+  max-height: min(45vh, 360px);
+  overflow: auto;
+  overflow-wrap: anywhere;
 }
 .tonebridge-inline-message {
   display: block;
