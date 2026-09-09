@@ -2,6 +2,23 @@
 
 All notable project changes are documented here. ToneBridge follows semantic versioning from v1.0 onward; older alpha versions may change interfaces without compatibility guarantees.
 
+## 2.0.0-rc.1 — 2026-09-09
+
+### Changed
+
+- Strengthen translation-only, grammar/spelling, and meaning-preservation instructions for both providers.
+- Increase completion budget for longer input and reject incomplete output instead of offering truncated text.
+- Validate protected terms, literal URLs, and common unwanted commentary prefixes.
+- Preserve rich-editor paragraph boundaries and avoid multiplying blank lines during Replace/Undo.
+- Bind suggestions to their original editor/source and ignore IME composition fragments.
+- Invalidate caches on private preference changes without broadcasting preference values.
+- Recheck disabled settings in the background before provider requests; keep response-body reads within request timeouts.
+- Hide raw provider error bodies and label saved keys accurately without claiming verified connectivity.
+- Add isolated Chromium editor/controller regression tests and opt-in live dataset evaluation.
+- Update vulnerable development dependencies; no paid service added.
+
+This is a candidate, not a claim of universal website compatibility or perfect AI fidelity. See `docs/V2_VERIFICATION.md`.
+
 ## 1.0.1 — 2026-07-21
 
 ### Fixed

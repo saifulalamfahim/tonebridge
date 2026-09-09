@@ -138,6 +138,7 @@ test('falls back to a range replacement and leaves the caret editable', () => {
     'select',
     'removeRanges',
     'addRange',
+    'select',
     'delete',
     ['insert', textNode],
     ['after', textNode],

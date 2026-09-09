@@ -37,7 +37,7 @@ export function findSupportedEditorFromEvent(event) {
 export function readEditorText(element) {
   if (element instanceof HTMLInputElement || element instanceof HTMLTextAreaElement)
     return element.value;
-  return element.textContent ?? '';
+  return element.innerText ?? element.textContent ?? '';
 }
 
 function dispatchReplacementInput(element, text) {
@@ -56,9 +56,7 @@ function replaceContentEditableText(element, text) {
   const range = documentRef.createRange?.();
 
   if (!selection || !range) {
-    element.textContent = text;
-    dispatchReplacementInput(element, text);
-    return;
+    throw new Error('This editor does not expose a safe text selection. Use Copy instead.');
   }
 
   range.selectNodeContents(element);
@@ -69,16 +67,37 @@ function replaceContentEditableText(element, text) {
   // command preserves that model and emits the native input lifecycle, while
   // assigning textContent would destroy required paragraph/span structure.
   try {
-    if (documentRef.execCommand?.('insertText', false, text)) return;
+    const lines = text.split('\n');
+    let inserted = documentRef.execCommand?.('insertText', false, lines[0]);
+    for (const line of lines.slice(1)) {
+      if (!inserted) break;
+      // insertText with embedded newlines can create spaced <p> elements,
+      // multiplying blank lines each time Replace/Undo is used.
+      inserted = documentRef.execCommand('insertLineBreak', false);
+      if (inserted && line) inserted = documentRef.execCommand('insertText', false, line);
+    }
+    if (inserted) return;
   } catch {
     // Fall through to a range-based replacement for editors/browsers that do
     // not implement insertText through execCommand.
   }
 
-  const activeRange = selection.rangeCount > 0 ? selection.getRangeAt(0) : range;
+  range.selectNodeContents(element);
+  const activeRange = range;
   activeRange.deleteContents();
-  const textNode = documentRef.createTextNode(text);
-  activeRange.insertNode(textNode);
+  let textNode = documentRef.createTextNode(text);
+  if (text.includes('\n')) {
+    const fragment = documentRef.createDocumentFragment();
+    text.split('\n').forEach((line, index) => {
+      if (index) fragment.append(documentRef.createElement('br'));
+      fragment.append(documentRef.createTextNode(line));
+    });
+    const lastNode = fragment.lastChild;
+    activeRange.insertNode(fragment);
+    textNode = lastNode;
+  } else {
+    activeRange.insertNode(textNode);
+  }
   activeRange.setStartAfter(textNode);
   activeRange.collapse(true);
   selection.removeAllRanges();
@@ -98,7 +117,9 @@ export function replaceEditorText(element, text) {
       new InputEvent('input', { bubbles: true, inputType: 'insertText', data: text }),
     );
     element.dispatchEvent(new Event('change', { bubbles: true }));
-    element.setSelectionRange(text.length, text.length);
+    // Email inputs do not implement selectionRange and must still accept text.
+    if (element instanceof HTMLTextAreaElement || ['text', 'search', 'url'].includes(element.type))
+      element.setSelectionRange(text.length, text.length);
     return;
   }
   replaceContentEditableText(element, text);

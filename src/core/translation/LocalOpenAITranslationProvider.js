@@ -2,6 +2,7 @@ import { normalizeLocalModel } from '../../shared/preferences.js';
 import { assertValidSourceText } from '../../shared/inputPolicy.js';
 import { TranslationProvider } from './TranslationProvider.js';
 import { buildTranslationPrompt } from './prompt.js';
+import { completionBudget, validateTranslation } from './outputPolicy.js';
 
 export const LOCAL_OPENAI_ENDPOINT = 'http://127.0.0.1:11434/v1/chat/completions';
 
@@ -19,6 +20,7 @@ export class LocalOpenAITranslationProvider extends TranslationProvider {
     super();
     this.model = normalizeLocalModel(model);
     this.fetchImpl = fetchImpl;
+    this.protectedTerms = protectedTerms;
     this.prompt = buildTranslationPrompt({ protectedTerms, stylePreferences });
   }
 
@@ -33,8 +35,10 @@ export class LocalOpenAITranslationProvider extends TranslationProvider {
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 60_000);
     let response;
+    let data;
     try {
-      response = await this.fetchImpl(LOCAL_OPENAI_ENDPOINT, {
+      const fetchRequest = this.fetchImpl;
+      response = await fetchRequest(LOCAL_OPENAI_ENDPOINT, {
         method: 'POST',
         headers: {
           Authorization: 'Bearer ollama',
@@ -47,12 +51,18 @@ export class LocalOpenAITranslationProvider extends TranslationProvider {
             { role: 'user', content: text },
           ],
           temperature: 0.1,
-          max_tokens: 512,
+          max_tokens: completionBudget(text),
           stream: false,
         }),
         signal: controller.signal,
       });
+      if (response.ok) data = await response.json();
     } catch (error) {
+      if (error instanceof SyntaxError)
+        throw new LocalProviderError(
+          'The local model returned an unreadable response. Please retry.',
+          'INVALID_RESPONSE',
+        );
       const message =
         error.name === 'AbortError'
           ? 'The local model took too long to respond.'
@@ -68,13 +78,6 @@ export class LocalOpenAITranslationProvider extends TranslationProvider {
         'LOCAL_REQUEST_FAILED',
         response.status,
       );
-    const data = await response.json();
-    const translation = data.choices?.[0]?.message?.content?.trim();
-    if (!translation)
-      throw new LocalProviderError(
-        'The local provider returned an empty translation.',
-        'INVALID_LOCAL_RESPONSE',
-      );
-    return { translation, message: '' };
+    return validateTranslation(data, text, this.protectedTerms);
   }
 }

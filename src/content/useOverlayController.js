@@ -45,6 +45,9 @@ const INITIAL_STATE = {
 export function useOverlayController() {
   const [state, setState] = useState(INITIAL_STATE);
   const editorRef = useRef(null);
+  const resultEditorRef = useRef(null);
+  const resultSourceRef = useRef('');
+  const composingRef = useRef(false);
   const observedEditorRef = useRef(null);
   const observedTextRef = useRef('');
   const debounceTimerRef = useRef(null);
@@ -81,6 +84,14 @@ export function useOverlayController() {
   }, []);
 
   const translate = useCallback(async (text, editor, { refresh = false } = {}) => {
+    if (
+      !editor.isConnected ||
+      !enabledRef.current ||
+      effectiveModeRef.current === SITE_MODES.disabled
+    )
+      return;
+    resultEditorRef.current = editor;
+    resultSourceRef.current = text;
     const requestId = ++requestIdRef.current;
     const cache = cacheRef.current;
     const cachedResult = refresh ? null : cache.get(text);
@@ -99,7 +110,10 @@ export function useOverlayController() {
 
     const result = await provider.translate(text);
     if (requestId !== requestIdRef.current || !editor.isConnected) return;
-    if (readEditorText(editor).trim() !== text) return;
+    if (readEditorText(editor).trim() !== text) {
+      setState((current) => ({ ...current, visible: false, loading: false }));
+      return;
+    }
 
     if (result.translation) {
       cache.set(text, result);
@@ -115,8 +129,8 @@ export function useOverlayController() {
   }, []);
 
   useEffect(() => {
-    Promise.all([chrome.storage.sync.get(DEFAULT_SETTINGS), getTopLevelOrigin()]).then(
-      ([settings, topLevelOrigin]) => {
+    Promise.all([chrome.storage.sync.get(DEFAULT_SETTINGS), getTopLevelOrigin()])
+      .then(([settings, topLevelOrigin]) => {
         siteOriginRef.current = topLevelOrigin;
         enabledRef.current = settings[STORAGE_KEYS.enabled];
         globalModeRef.current = settings[STORAGE_KEYS.translationMode];
@@ -126,9 +140,17 @@ export function useOverlayController() {
           getSiteMode(siteModesRef.current, siteOriginRef.current),
         );
         settingsReadyRef.current = true;
-      },
-    );
+      })
+      .catch(() => {
+        settingsReadyRef.current = false;
+        hide();
+      });
     const onStorage = (changes, area) => {
+      if (area === 'local') {
+        cacheRef.current.clear();
+        hide();
+        return;
+      }
       if (area !== 'sync') return;
       let modeChanged = false;
       if (changes[STORAGE_KEYS.enabled]) {
@@ -152,12 +174,21 @@ export function useOverlayController() {
       }
     };
     const onFocusIn = (event) => {
+      const previousEditor = editorRef.current;
       const editor = rememberEditor(findSupportedEditorFromEvent(event));
       if (!editor) return;
+      if (previousEditor && previousEditor !== editor) hide();
       observedEditorRef.current = editor;
       observedTextRef.current = readEditorText(editor).trim();
     };
     const onEditorChange = (event) => {
+      if (event.isComposing || composingRef.current) return;
+      if (
+        !settingsReadyRef.current ||
+        !enabledRef.current ||
+        effectiveModeRef.current === SITE_MODES.disabled
+      )
+        return;
       const editor = findSupportedEditorFromEvent(event);
       if (!editor) return;
       const text = readEditorText(editor).trim();
@@ -170,7 +201,6 @@ export function useOverlayController() {
       observedEditorRef.current = editor;
       observedTextRef.current = text;
       if (suppressNextInputRef.current) {
-        suppressNextInputRef.current = false;
         return;
       }
       if (!textChanged || !settingsReadyRef.current || !enabledRef.current) return;
@@ -198,6 +228,11 @@ export function useOverlayController() {
       if (event.key === 'Escape') hide();
     };
     const onRuntimeMessage = (message, _sender, sendResponse) => {
+      if (message?.type === MESSAGE_TYPES.preferencesChanged) {
+        cacheRef.current.clear();
+        hide();
+        return false;
+      }
       if (message?.type === MESSAGE_TYPES.getSiteContext) {
         sendResponse({ origin: siteOriginRef.current });
         return false;
@@ -209,7 +244,11 @@ export function useOverlayController() {
         effectiveModeRef.current === SITE_MODES.disabled
       )
         return false;
-      const activeEditor = findSupportedEditor(document.activeElement) ?? editorRef.current;
+      if (!document.hasFocus() || composingRef.current) return false;
+      let activeElement = document.activeElement;
+      while (activeElement?.shadowRoot?.activeElement)
+        activeElement = activeElement.shadowRoot.activeElement;
+      const activeEditor = findSupportedEditor(activeElement);
       if (!activeEditor?.isConnected || !findSupportedEditor(activeEditor)) return false;
 
       rememberEditor(activeEditor);
@@ -227,6 +266,16 @@ export function useOverlayController() {
     document.addEventListener('input', onEditorChange, true);
     document.addEventListener('keyup', onEditorChange, true);
     document.addEventListener('keydown', onKeydown, true);
+    const onCompositionStart = () => {
+      composingRef.current = true;
+      hide();
+    };
+    const onCompositionEnd = (event) => {
+      composingRef.current = false;
+      onEditorChange(event);
+    };
+    document.addEventListener('compositionstart', onCompositionStart, true);
+    document.addEventListener('compositionend', onCompositionEnd, true);
     window.addEventListener('resize', reposition);
     window.addEventListener('scroll', reposition, true);
     chrome.storage.onChanged.addListener(onStorage);
@@ -238,6 +287,8 @@ export function useOverlayController() {
       document.removeEventListener('input', onEditorChange, true);
       document.removeEventListener('keyup', onEditorChange, true);
       document.removeEventListener('keydown', onKeydown, true);
+      document.removeEventListener('compositionstart', onCompositionStart, true);
+      document.removeEventListener('compositionend', onCompositionEnd, true);
       window.removeEventListener('resize', reposition);
       window.removeEventListener('scroll', reposition, true);
       chrome.storage.onChanged.removeListener(onStorage);
@@ -249,9 +300,30 @@ export function useOverlayController() {
     const editor = editorRef.current;
     const translation = state.result?.translation;
     if (!editor || !translation) return;
+    if (
+      editor !== resultEditorRef.current ||
+      !editor.isConnected ||
+      readEditorText(editor).trim() !== resultSourceRef.current
+    )
+      return hide();
     const originalText = readEditorText(editor);
     suppressNextInputRef.current = true;
-    replaceEditorText(editor, translation);
+    try {
+      replaceEditorText(editor, translation);
+    } catch {
+      setState((current) => ({
+        ...current,
+        result: {
+          ...current.result,
+          message: 'This editor did not accept replacement. Use Copy instead.',
+        },
+      }));
+      return;
+    } finally {
+      suppressNextInputRef.current = false;
+    }
+    observedEditorRef.current = editor;
+    observedTextRef.current = readEditorText(editor).trim();
     clearTimeout(feedbackTimerRef.current);
     setState((current) => ({
       ...current,
@@ -268,7 +340,13 @@ export function useOverlayController() {
     const editor = editorRef.current;
     if (!editor || readEditorText(editor) !== state.appliedTranslation) return hide();
     suppressNextInputRef.current = true;
-    replaceEditorText(editor, state.originalText);
+    try {
+      replaceEditorText(editor, state.originalText);
+    } catch {
+      return;
+    } finally {
+      suppressNextInputRef.current = false;
+    }
     hide();
   }, [hide, state.appliedTranslation, state.originalText]);
 

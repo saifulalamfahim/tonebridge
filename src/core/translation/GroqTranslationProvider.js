@@ -1,6 +1,7 @@
 import { TranslationProvider } from './TranslationProvider.js';
 import { buildTranslationPrompt } from './prompt.js';
 import { assertValidSourceText } from '../../shared/inputPolicy.js';
+import { completionBudget, validateTranslation } from './outputPolicy.js';
 
 export const GROQ_MODEL = 'openai/gpt-oss-120b';
 
@@ -25,6 +26,7 @@ export class GroqTranslationProvider extends TranslationProvider {
     this.apiKey = apiKey;
     this.fetchImpl = fetchImpl;
     this.model = model;
+    this.protectedTerms = protectedTerms;
     this.prompt = buildTranslationPrompt({ protectedTerms, stylePreferences });
   }
 
@@ -33,6 +35,7 @@ export class GroqTranslationProvider extends TranslationProvider {
     if (!this.apiKey) throw new GroqApiError('A Groq API key is required.', 'MISSING_API_KEY');
 
     let response;
+    let data;
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 20_000);
     try {
@@ -53,13 +56,19 @@ export class GroqTranslationProvider extends TranslationProvider {
             { role: 'user', content: text },
           ],
           temperature: 0.1,
-          max_completion_tokens: 512,
+          max_completion_tokens: completionBudget(text),
           reasoning_effort: 'low',
           reasoning_format: 'hidden',
         }),
         signal: controller.signal,
       });
+      if (response.ok) data = await response.json();
     } catch (error) {
+      if (error instanceof SyntaxError)
+        throw new GroqApiError(
+          'Groq returned an unreadable response. Please retry.',
+          'INVALID_RESPONSE',
+        );
       const message =
         error.name === 'AbortError'
           ? 'Groq took too long to respond.'
@@ -82,25 +91,13 @@ export class GroqTranslationProvider extends TranslationProvider {
           'RATE_LIMIT',
           429,
         );
-      let providerMessage = '';
-      try {
-        const errorData = await response.json();
-        providerMessage = errorData.error?.message?.trim() ?? '';
-      } catch {
-        // Groq occasionally returns an empty or non-JSON error response.
-      }
-      const safeDetail = providerMessage ? ` ${providerMessage.slice(0, 240)}` : '';
       throw new GroqApiError(
-        `Groq request failed (HTTP ${response.status}).${safeDetail}`,
+        `Groq request failed (HTTP ${response.status}). Try again later.`,
         'REQUEST_FAILED',
         response.status,
       );
     }
 
-    const data = await response.json();
-    const translation = data.choices?.[0]?.message?.content?.trim();
-    if (!translation)
-      throw new GroqApiError('Groq returned an empty translation.', 'INVALID_RESPONSE');
-    return { translation, message: '' };
+    return validateTranslation(data, text, this.protectedTerms);
   }
 }

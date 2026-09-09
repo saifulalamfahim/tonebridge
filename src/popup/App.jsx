@@ -393,10 +393,12 @@ export function App() {
           <div className="section-heading">
             <span>
               <strong>Groq API</strong>
-              <small>{hasApiKey ? 'Ready for live translation' : 'API key required'}</small>
+              <small>
+                {hasApiKey ? 'Key saved; provider availability may vary' : 'API key required'}
+              </small>
             </span>
             <em className={hasApiKey ? 'connected' : ''}>
-              {hasApiKey ? 'Connected' : 'Offline demo'}
+              {hasApiKey ? 'Key saved' : 'Offline demo'}
             </em>
           </div>
           <label htmlFor="groq-key">Free Groq API key</label>
@@ -454,9 +456,11 @@ export function App() {
         )}
       </section>
       <p className="notice">
-        Your provider settings, key, vocabulary, and style preferences stay in this browser.
-        Automatic mode sends text after a typing pause; Manual mode sends it only when you use the
-        shortcut. Never use a shared production key inside a public extension.
+        Groq mode sends your editor text to Groq for translation. Review the English suggestion
+        before replacing or sending it; AI can still misinterpret ambiguous text. Your provider
+        settings, key, vocabulary, and style preferences stay in this browser. Automatic mode sends
+        text after a typing pause; Manual mode sends it only when you use the shortcut. Never use a
+        shared production key inside a public extension.
       </p>
     </main>
   );

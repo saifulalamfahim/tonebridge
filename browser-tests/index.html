@@ -1,0 +1,52 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>ToneBridge browser regression lab</title>
+    <style>
+      body {
+        font: 16px system-ui;
+        max-width: 850px;
+        margin: 30px auto;
+        padding: 20px;
+      }
+      textarea,
+      input,
+      [contenteditable] {
+        display: block;
+        width: 90%;
+        border: 1px solid #aaa;
+        padding: 12px;
+        margin: 12px 0;
+        min-height: 30px;
+      }
+      button {
+        padding: 10px;
+        margin: 6px;
+      }
+      output {
+        display: block;
+        white-space: pre-wrap;
+      }
+      #rich {
+        min-height: 100px;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>ToneBridge browser regression lab</h1>
+    <p>Invented text only. Uses the actual editor module; no API, key, or external request.</p>
+    <label>Standard input<input id="plain" value="ami jabo na" /></label>
+    <label>Email input<input id="email" type="email" value="test@example.test" /></label>
+    <label>Textarea<textarea id="area">ami jabo na</textarea></label>
+    <div role="textbox" aria-label="Rich editor" contenteditable="true" id="rich">
+      <p>ami jabo na</p>
+      <p>kalke kaj ase</p>
+    </div>
+    <button id="replace">Replace in focused editor</button
+    ><button id="undo">Undo replacement</button>
+    <button id="suite">Run browser assertions</button>
+    <output id="result" aria-live="polite">Ready</output>
+    <script type="module" src="./browser-lab.js"></script>
+  </body>
+</html>

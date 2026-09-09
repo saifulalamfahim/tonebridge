@@ -1,9 +1,15 @@
 import { createTranslationProvider } from '../core/translation/providerFactory.js';
-import { COMMANDS, DEFAULT_SETTINGS, MESSAGE_TYPES, STORAGE_KEYS } from '../shared/constants.js';
+import {
+  COMMANDS,
+  DEFAULT_SETTINGS,
+  MESSAGE_TYPES,
+  SITE_MODES,
+  STORAGE_KEYS,
+} from '../shared/constants.js';
 import { assertValidSourceText } from '../shared/inputPolicy.js';
 import { migrateLocalSettings } from '../shared/migrations.js';
 import { normalizeProtectedTerms, normalizeStylePreferences } from '../shared/preferences.js';
-import { getSiteOrigin } from '../shared/siteSettings.js';
+import { getSiteOrigin, getSiteMode } from '../shared/siteSettings.js';
 
 async function protectLocalSecrets() {
   await chrome.storage.local.setAccessLevel({ accessLevel: 'TRUSTED_CONTEXTS' });
@@ -16,6 +22,26 @@ async function migrateStorage() {
 
 protectLocalSecrets().catch(() => undefined);
 migrateStorage().catch(() => undefined);
+
+// Local storage is restricted to trusted contexts. Notify content scripts without
+// exposing keys, protected vocabulary, or other private settings.
+chrome.storage.onChanged.addListener((_changes, area) => {
+  if (area !== 'local') return;
+  chrome.tabs
+    .query({})
+    .then((tabs) =>
+      Promise.allSettled(
+        tabs
+          .filter((tab) => tab.id)
+          .map((tab) =>
+            chrome.tabs.sendMessage(tab.id, {
+              type: MESSAGE_TYPES.preferencesChanged,
+            }),
+          ),
+      ),
+    )
+    .catch(() => undefined);
+});
 
 chrome.runtime.onInstalled.addListener(async () => {
   await protectLocalSecrets();
@@ -60,6 +86,16 @@ chrome.runtime.onMessage.addListener((message, _sender, sendResponse) => {
       STORAGE_KEYS.localModel,
     ])
     .then(async (settings) => {
+      const controls = await chrome.storage.sync.get(DEFAULT_SETTINGS);
+      const origin = getSiteOrigin(_sender.tab?.url);
+      if (
+        !controls[STORAGE_KEYS.enabled] ||
+        getSiteMode(controls[STORAGE_KEYS.siteModes], origin) === SITE_MODES.disabled
+      ) {
+        throw Object.assign(new Error('Translation is disabled for this website.'), {
+          code: 'TRANSLATION_DISABLED',
+        });
+      }
       const provider = createTranslationProvider({
         providerId: settings[STORAGE_KEYS.providerId],
         groqApiKey: settings[STORAGE_KEYS.groqApiKey]?.trim(),
